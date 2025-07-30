@@ -1,0 +1,7 @@
+{
+  "name": "scratch-ionic",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}

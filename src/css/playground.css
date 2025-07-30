@@ -1,0 +1,57 @@
+.playground-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  width: 100%;
+}
+
+/* Landscape mode: show buttons left and right */
+@media (orientation: landscape) and (min-width: 768px) {
+  .playground-wrapper {
+    flex-direction: row;
+  }
+
+  .left {
+    order: 1;
+  }
+
+  .canvas-container {
+    order: 2;
+  }
+
+  .right {
+    order: 3;
+  }
+}
+
+.canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.playground-canvas {
+  max-width: 460px;
+  max-height: 360px;
+  width: 100%;
+  border: 1px solid #ccc;
+}
+
+.arrow-button {
+  font-size: 12px;
+  /* padding: 10px 16px; */
+  /* background-color: #2196f3; */
+  /* color: white; */
+  /* border-radius: 8px; */
+  /* border: none; */
+  /* cursor: pointer; */
+}
+
+/* .arrow-button.right:last-of-type {
+  flex-basis: 100%;
+  justify-content: center;
+  margin-top: 8px;
+} */

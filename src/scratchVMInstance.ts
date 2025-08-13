@@ -61,15 +61,19 @@ export async function getProjectBuffer(): Promise<any> {
 let lastSavedProject: ArrayBuffer | null = null;
 
 export async function saveCurrentProjectBuffer() {
-    const vm = getVMInstance();
-    const blob = await vm.saveProjectSb3();
-    const arrayBuffer = await blob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    lastSavedProject = arrayBuffer
-    // Convert Uint8Array to base64
-    const base64 = uint8ToBase64(uint8Array);
-    // localStorage.setItem("lastSavedProject", base64);
-    console.log("Project saved to localStorage");
+    try {
+        const vm = getVMInstance();
+        const blob = await vm.saveProjectSb3();
+        const arrayBuffer = await blob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+        lastSavedProject = arrayBuffer
+        // Convert Uint8Array to base64
+        const base64 = uint8ToBase64(uint8Array);
+        // localStorage.setItem("lastSavedProject", base64);
+        console.log("Project saved to localStorage");
+    } catch (error) {
+        console.error("Error saving project buffer:", error);
+    }
 }
 
 function uint8ToBase64(uint8Array: Uint8Array): string {

@@ -3,6 +3,15 @@
   "private": true,
   "version": "0.0.1",
   "type": "module",
+  "cap": {
+    "android": {
+      "package": "screen-recorder",
+      "path": "android"
+    },
+    "ios": {
+      "path": "ios"
+    }
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -32,6 +41,7 @@
     "@mui/material": "^7.2.0",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
+    "axios": "^1.11.0",
     "blockly": "^12.2.0",
     "buffer": "^6.0.3",
     "capacitor-document-scanner": "^2.0.0",
@@ -42,6 +52,7 @@
     "pdf-lib": "^1.17.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-media-recorder": "^1.7.1",
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
     "scratch-audio": "^2.0.188",

@@ -1,12 +1,7 @@
-import { Redirect, Route } from 'react-router-dom';
+import { Redirect, Route, BrowserRouter as Router } from 'react-router-dom';
 import {
   IonApp,
-  IonIcon,
-  IonLabel,
   IonRouterOutlet,
-  IonTabBar,
-  IonTabButton,
-  IonTabs,
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -38,13 +33,21 @@ import '@ionic/react/css/display.css';
 /* import '@ionic/react/css/palettes/dark.class.css'; */
 // import '@ionic/react/css/palettes/dark.system.css';
 
-/* Theme variables */
 import './theme/variables.css';
-import EditorPage from './pages/EditorPage';
 import { ScratchProvider } from './scratch/ScratchProvider';
 import { Buffer } from 'buffer';
-import PlaygroundPage from './pages/PlaygroundPage';
-import HomePage from './pages/Home';
+import MainLayout from './theme/MainLayout';
+import LoginPreference from './pages/Auth/LoginPreference';
+import LoginMethodPreference from './pages/Auth/LoginMethodPreference';
+import LoginWithCode from './pages/Auth/LoginWithCode';
+import LoginWithMobile from './pages/Auth/LoginWithMobile';
+import TabsLayout from './theme/TabLayout';
+import ScratchWorkspace from './components/ScratchWorkspace';
+import PrivateRoute from './routes/PrivateRoutes';
+import PublicRoute from './routes/PublicRoutes';
+import CompleteProfile from './pages/Auth/CompleteProfile';
+import AcceptCode from './pages/Auth/AcceptCode';
+import ForgotPassword from './pages/Auth/ForgotPassword';
 window.Buffer = Buffer;
 
 setupIonicReact();
@@ -54,10 +57,25 @@ const App: React.FC = () => (
     <IonApp>
       <IonReactRouter>
         <IonRouterOutlet>
-          <Route path="/home" component={HomePage} exact />
-          <Route path="/editor" component={EditorPage} exact />
-          <Route path="/playground" component={PlaygroundPage} exact />
-          <Redirect exact from="/" to="/home" />
+          <PublicRoute exact path="/" component={LoginPreference} />
+          <PublicRoute exact path="/login" component={LoginPreference} />
+          <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
+          <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
+          <PublicRoute exact path="/sign-up" component={LoginWithCode} />
+          <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
+          <PublicRoute exact path="/accept-code" component={AcceptCode} />
+          <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
+
+          <Route exact path="/scratch-editor" render={() => (
+            <MainLayout>
+              <ScratchWorkspace />
+            </MainLayout>
+          )} />
+
+          <PrivateRoute path="/tabs" component={TabsLayout} />
+
+          {/* <Route path="/tabs" component={TabsLayout} /> */}
+          <Route render={() => <Redirect to="/" />} />
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>

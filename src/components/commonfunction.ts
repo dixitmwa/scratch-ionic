@@ -34,6 +34,7 @@ export async function loadProject(vm: any, input: any): Promise<void> {
         }
       } else {
         // Input is a valid Scratch 2/3 project JSON
+        debugger
         try {
           await vm.deserializeProject(validatedProject[0], validatedProject[1]);
           vm.runtime.handleProjectLoaded();

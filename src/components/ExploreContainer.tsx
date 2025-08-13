@@ -1,6 +1,6 @@
 import './ExploreContainer.css';
 
-const ExploreContainer = ({ name }) => {
+const ExploreContainer = ({ name }: { name: string }) => {
   return (
     <div className="container">
       <strong>{name}</strong>

@@ -1,21 +1,26 @@
 import { useEffect, useRef, useState } from 'react';
 import ScratchBlocks from 'scratch-blocks'; // or 'blockly'
-import './blocks.css'; // Ensure this contains `.blocklyWorkspace`
+import './blocks.css'; // Ensure this file contains relevant styles, e.g. `.blocklyWorkspace`
 import { getProjectFile, loadProject, setLastSavedProjectData } from './commonfunction';
-import { IonButton, IonNavLink, useIonRouter, useIonViewDidEnter, useIonViewWillEnter, useIonViewWillLeave } from '@ionic/react';
+import { IonButton, IonIcon, IonPage, useIonRouter, useIonViewDidEnter } from '@ionic/react';
 import { attachRendererIfNone, disposeRenderer, getProjectBuffer, getVMInstance, saveCurrentProjectBuffer, setUploadedProjectBuffer } from '../scratchVMInstance';
-import { Box, Button } from '@mui/material';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Preferences } from '@capacitor/preferences';
+import CommonCard from './common-component/Card';
+import CustomButton from './common-component/Button';
+import { chevronForwardOutline, reloadOutline } from 'ionicons/icons';
+import { useHistory } from 'react-router';
 
 export default function ScratchWorkspace() {
   const blockRef = useRef(null);
-  const workspaceRef = useRef<any>(null);
-  const [ready, setReady] = useState(false);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const workspaceRef = useRef(null);
+  const canvasRef = useRef(null);
+  const vmRef = useRef(null);
   const router = useIonRouter();
-  const vmRef = useRef<any>(getVMInstance());
+  const history = useHistory()
+  const [ready, setReady] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
+  const [selectedSpriteId, setSelectedSpriteId] = useState(null);
 
   const lockOrientation = async () => {
     try {
@@ -26,75 +31,13 @@ export default function ScratchWorkspace() {
   };
 
   useEffect(() => {
-    const observer = new ResizeObserver(entries => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setReady(true);
-          observer.disconnect();
-        }
-      }
-    });
-    lockOrientation()
-    // workspaceRef?.current?.addChangeListener(handleEvent);
-
-    if (blockRef.current) observer.observe(blockRef.current);
-    return () => {
-      observer.disconnect();
-      // workspaceRef?.current?.removeChangeListener(handleEvent);
-    };
+    vmRef.current = getVMInstance();
   }, []);
 
-  const handleBlockChange = async (e: any) => {
-    const vm = vmRef.current;
-    const ws = workspaceRef.current;
+  useEffect(() => {
+    if (!blockRef.current) return;
 
-    if (!vm || !vm.editingTarget || !ws) return;
-
-    try {
-      vm.editingTarget.blocks.blocklyListen(e);
-    } catch (err) {
-      console.error("❌ Error syncing blocks to VM", err);
-    }
-  };
-
-  const handleUpload = async () => {
-    // const projectUrl = localStorage.getItem("project");
-    // const projectUrl = await getProjectFile()
-    const { value } = await Preferences.get({ key: 'project' })
-    console.log("value->", value)
-    const projectUrl = value;
-    // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
-    if (!projectUrl) throw new Error("No file and no project URL in localStorage");
-
-    debugger
-    try {
-      const response = await fetch(projectUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/pdf',
-        },
-      });
-      console.log("response--->", response)
-      if (!response.ok) throw new Error("Failed to fetch project from URL");
-
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      // const file = e.target.files[0]; ,
-      // const buffer = new Uint8Array(await file.arrayBuffer());
-      setFileUploaded(true)
-      await loadProject(vmRef.current, buffer);
-      setUploadedProjectBuffer(buffer)
-    } catch (error) {
-      setFileUploaded(false)
-      console.error('Error loading project:', error);
-    }
-  };
-
-
-  useIonViewDidEnter(() => {
-    debugger
-    const observer = new ResizeObserver(entries => {
+    const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width, height } = entry.contentRect;
         if (width > 0 && height > 0) {
@@ -103,30 +46,23 @@ export default function ScratchWorkspace() {
         }
       }
     });
+
+    lockOrientation();
     handleUpload()
-    lockOrientation()
 
-    workspaceRef?.current?.addChangeListener(handleBlockChange);
-    const blockCanvas = document.querySelector('.blocklyBlockCanvas');
-    if (blockCanvas) blockCanvas.setAttribute('transform', 'translate(0,0) scale(1)');
+    observer.observe(blockRef.current);
 
-
-    if (blockRef.current) observer.observe(blockRef.current);
     return () => {
       observer.disconnect();
-      // workspaceRef?.current?.removeChangeListener(handleEvent);
-      workspaceRef?.current?.removeChangeListener(handleBlockChange);
-    }
-  })
+    };
+  }, []);
 
   useEffect(() => {
     if (!ready || !blockRef.current) return;
 
     workspaceRef.current = ScratchBlocks.inject(blockRef.current, {
-      // toolbox: TOOLBOX_XML,
       toolbox: null,
       media: 'https://unpkg.com/scratch-blocks/media/',
-      // renderer: 'zelos',
       zoom: {
         controls: true,
         wheel: true,
@@ -148,175 +84,352 @@ export default function ScratchWorkspace() {
       attachRendererIfNone(canvasRef.current);
     }
 
-    workspaceRef.current.addChangeListener(handleBlockChange);
-
-    const handleProjectLoaded = () => {
-      updateBlocksWorkspace();
-      if (workspaceRef.current) {
-        setTimeout(() => {
-          const ws = workspaceRef.current;
-          if (ws) {
-            ws.setScale(1);
-            ws.resize();
-
-            ws.scrollCenter();
-
-            if (ws.updateScreenCalculations) {
-              ws.updateScreenCalculations();
-            }
-
-            if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
-              ws.dragSurface_.updateTransform();
-            }
-          }
-        }, 100);
+    const handleBlockChange = (e) => {
+      const vm = vmRef.current;
+      const ws = workspaceRef.current;
+      if (!vm || !vm.editingTarget || !ws) return;
+      try {
+        vm.editingTarget.blocks.blocklyListen(e);
+      } catch (err) {
+        console.error("❌ Error syncing blocks to VM", err);
       }
     };
 
-    vmRef.current.on('PROJECT_LOADED', () => {
+    workspaceRef.current.addChangeListener(handleBlockChange);
+
+    const handleProjectLoaded = () => {
+      const spriteTargets = vmRef.current?.runtime?.targets.filter(t => t.isSprite);
+      if (!selectedSpriteId) {
+        vmRef.current?.setEditingTarget(spriteTargets[1].id);
+        updateBlocksForSprite(spriteTargets[1].id);
+      }
+      else {
+        updateBlocksForSprite(selectedSpriteId);
+      }
+      setTimeout(() => {
+        const ws: any = workspaceRef.current;
+        if (!ws) return;
+
+        ws.setScale(0.9);
+        ws.resize();
+
+        const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
+
+        ws.scrollX -= offsetX;
+        ws.scrollY -= offsetY;
+
+        if (ws.updateScreenCalculations) {
+          ws.updateScreenCalculations();
+        }
+        ScratchBlocks.svgResize(ws);
+        ws.resize();
+        if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
+          ws.dragSurface_.updateTransform();
+        }
+      }, 500);
+      // setTimeout(() => {
+      //   const ws = workspaceRef.current;
+      //   if (!ws) return;
+
+      //   ws.setScale(1);
+      //   ws.resize();
+
+      //   const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
+
+      //   ws.scrollX -= offsetX;
+      //   ws.scrollY -= offsetY;
+
+      //   if (ws.updateScreenCalculations) {
+      //     ws.updateScreenCalculations();
+      //   }
+      //   ScratchBlocks.svgResize(ws);
+      //   ws.resize();
+      //   if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
+      //     ws.dragSurface_.updateTransform();
+      //   }
+      // }, 100);
+    };
+
+    const vm: any = vmRef.current;
+
+    vm?.on('PROJECT_LOADED', () => {
       console.log('Project loaded, updating workspace blocks');
       handleProjectLoaded();
     });
 
-    vmRef.current.on('TARGETS_UPDATE', () => {
+    vm?.on('TARGETS_UPDATE', () => {
       console.log('Targets updated, refreshing blocks');
       handleProjectLoaded();
     });
 
-    vmRef.current.on('BLOCKSINFO_UPDATE', () => {
+    vm?.on('BLOCKSINFO_UPDATE', () => {
       console.log('Blocks info updated, refreshing blocks');
       handleProjectLoaded();
     });
 
-    vmRef.current.on('workspaceUpdate', () => {
+    vm?.on('workspaceUpdate', () => {
       console.log('Workspace updated, refreshing blocks');
       handleProjectLoaded();
+    });
+
+    vm?.on('targetsUpdate', () => {
+      if (fileUploaded && selectedSpriteId) {
+        console.log('Targets updated, refreshing blocks');
+        handleProjectLoaded();
+      }
     });
 
     const blockCanvas = document.querySelector('.blocklyBlockCanvas');
     if (blockCanvas) blockCanvas.setAttribute('transform', 'translate(0,0) scale(1)');
 
-    // handleUpload();
-
     return () => {
-      saveCurrentProjectBuffer()
+      window.removeEventListener('resize', onResize);
       workspaceRef.current?.dispose();
       if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
-      vmRef.current.runtime.off('BLOCK_DRAG_END', handleBlockChange);
-      vmRef.current.runtime.off('SCRIPT_GLOW_ON', handleBlockChange);
-      vmRef.current.runtime.off('VISUAL_REPORT', handleBlockChange);
-      disposeRenderer()
+      vm?.runtime?.off('PROJECT_LOADED', handleProjectLoaded);
+      vm?.runtime?.off('TARGETS_UPDATE', handleProjectLoaded);
+      vm?.runtime?.off('BLOCKSINFO_UPDATE', handleProjectLoaded);
+      vm?.runtime?.off('workspaceUpdate', handleProjectLoaded);
+      vm?.runtime?.off('targetsUpdate', handleProjectLoaded);
+      disposeRenderer();
     };
   }, [ready]);
 
-  useIonViewDidEnter(() => {
-    setTimeout(() => {
-      updateBlocksWorkspace();
-    }, 50);
-  });
-
-  const updateBlocksWorkspace = async () => {
-    const vm = vmRef.current;
+  const updateBlocksForSprite = (spriteId: any) => {
     const ws = workspaceRef.current;
-    const editingTarget = vm && vm.editingTarget;
+    const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
+    if (!ws || !target) return;
 
-    if (!ws || !editingTarget) return;
-
+    let xmlString = target.blocks.toXML();
+    if (!xmlString.trim().startsWith('<xml')) {
+      xmlString = `<xml>${xmlString}</xml>`;
+    }
     try {
-      const xmlDom = ScratchBlocks.Xml.workspaceToDom(ws);
-      const xmlString = ScratchBlocks.Xml.domToText(xmlDom);
-      console.log("Updated XML from workspace:", xmlString);
-
-      if (xmlString.length > 80) {
-
-        const blob = await vm.saveProjectSb3();
-        const arrayBuffer = await blob.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        const base64 = btoa(String.fromCharCode(...uint8Array));
-
-        localStorage.setItem('lastSavedProject', base64);
-        setLastSavedProjectData(base64);
-        setUploadedProjectBuffer(uint8Array);
-
-        console.log("VM updated with latest blocks");
-      } else {
-        let vmXmlString = editingTarget.blocks.toXML();
-        if (!vmXmlString.trim().startsWith('<xml')) {
-          vmXmlString = `<xml>${vmXmlString}</xml>`;
-        }
-
-        const dom = ScratchBlocks.Xml.textToDom(vmXmlString);
-        ws.clear();
-        ScratchBlocks.Xml.domToWorkspace(dom, ws);
-        ScratchBlocks.svgResize(ws);
-      }
-    } catch (error) {
-      console.error("Error updating blocks workspace:", error);
+      ws.clear();
+      const dom = ScratchBlocks.Xml.textToDom(xmlString);
+      ScratchBlocks.Xml.domToWorkspace(dom, ws);
+      ScratchBlocks.svgResize(ws);
+      ws.resize();
+      setSelectedSpriteId(spriteId);
+    } catch (e) {
+      console.error('Failed to set blocks for sprite', e);
     }
   };
 
+  const handleSpriteClick = (spriteId: any) => {
+    setSelectedSpriteId(spriteId);
+    vmRef.current?.setEditingTarget(spriteId);
+    // handleProjectLoaded()
+    // updateBlocksForSprite(spriteId);
+    const onTargetsUpdate = () => {
+      updateBlocksForSprite(spriteId);
+      vmRef.current?.runtime?.off('targetsUpdate', onTargetsUpdate);
+    };
+
+    vmRef.current?.runtime?.on('targetsUpdate', onTargetsUpdate);
+
+    setTimeout(() => {
+      updateBlocksForSprite(spriteId);
+    }, 100);
+  };
+
+  // function uint8ArrayToBase64Storage(u8Arr: any) {
+  //   return btoa(String.fromCharCode(...u8Arr));
+  // }
+
+  function uint8ArrayToBase64Storage(u8Arr: Uint8Array): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([u8Arr]);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string; // e.g. "data:application/octet-stream;base64,..."
+      const base64 = dataUrl.split(',')[1]; // get only base64 part
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+
+  const handleUpload = async () => {
+    const { value } = await Preferences.get({ key: 'project' })
+    console.log("value->", value)
+    const projectUrl = value;
+    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
+    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/49b33c1f68664dc9b4af7dadbade5357";
+    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3";
+    // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
+    if (!projectUrl) throw new Error("No file and no project URL in localStorage");
+
+    try {
+      const response = await fetch(projectUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/pdf',
+        },
+      });
+      console.log("response--->", response)
+      if (!response.ok) throw new Error("Failed to fetch project from URL");
+
+      const arrayBuffer = await response.arrayBuffer();
+      const buffer = new Uint8Array(arrayBuffer);
+      const base64 = uint8ArrayToBase64(buffer);
+      // await Preferences.set({ key: "buffer_base64", value: base64 });
+      // const file = e.target.files[0];
+      // const buffer = new Uint8Array(await file.arrayBuffer());
+      setFileUploaded(true)
+      await loadProject(vmRef.current, buffer);
+      setUploadedProjectBuffer(buffer)
+    } catch (error) {
+      setFileUploaded(false)
+      console.error('Error loading project:', error);
+    }
+  };
+
+  function uint8ArrayToBase64(uint8Array) {
+    let binary = '';
+    const chunkSize = 0x8000; // 32KB per chunk
+    for (let i = 0; i < uint8Array.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(
+        null,
+        uint8Array.subarray(i, i + chunkSize)
+      );
+    }
+    return btoa(binary);
+  }
+
+
+  // Navigate to playground page after saving current project
   const navigateToPlaygorund = async () => {
     try {
+      console.log("1---")
       await saveCurrentProjectBuffer();
-
+      console.log("1")
       const latestBuffer = await getProjectBuffer();
       if (!latestBuffer) {
         alert("Could not retrieve latest project buffer.");
         return;
       }
+      console.log("2")
 
       const uint8Buffer = new Uint8Array(latestBuffer);
+      console.log("3")
 
       setUploadedProjectBuffer(uint8Buffer);
+      console.log("4")
 
       const blob = await vmRef.current.saveProjectSb3();
+      console.log("5")
+
       const arrayBuffer = await blob.arrayBuffer();
+      console.log("6")
       const uint8Array = new Uint8Array(arrayBuffer);
-
-      const base64 = btoa(String.fromCharCode(...uint8Array));
+      console.log("7")
+      const base64 = await uint8ArrayToBase64Storage(uint8Array);
+      console.log("8")
+      await Preferences.set({ key: "buffer_base64", value: base64 });
+      console.log("9")
       localStorage.setItem('lastSavedProject', base64);
+      console.log("10")
       setLastSavedProjectData(base64);
+      console.log("11")
 
-      router.push('/playground', 'none');
+      history.push('/tabs/playground');
     } catch (e) {
       console.error("Failed to navigate to playground:", e);
       alert("Failed to prepare project for navigation.");
     }
   };
 
+  const backToScan = () => {
+    history.push('/tabs/editor')
+  }
+
+  const getImageFromAsset = (asset: any) => {
+    const base64String = btoa(
+      new Uint8Array(asset.data).reduce((data, byte) => data + String.fromCharCode(byte), '')
+    );
+
+    const mimeType = asset.dataFormat === 'svg' ? 'image/svg+xml' :
+      asset.dataFormat === 'png' ? 'image/png' :
+        asset.dataFormat === 'jpg' ? 'image/jpeg' :
+          'application/octet-stream';
+
+    return `data:${mimeType};base64,${base64String}`;
+  };
+
+  useIonViewDidEnter(() => {
+    lockOrientation();
+    handleUpload();
+  })
+
+  console.log("selectedSpriteId", selectedSpriteId);
+
   return (
-    <>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-        {/* <Button variant='contained' onClick={() => fileInputRef.current?.click()}>Upload File</Button> */}
-        {/* <Button variant='contained' disabled={!fileUploaded} onClick={navigateToPlaygorund}>Play</Button> */}
-        {/* <Button variant='contained' disabled={!fileUploaded} onClick={navigateToPlaygorund}>Play</Button> */}
-        <IonButton
-          expand="block"
-          disabled={!fileUploaded}
-          onClick={navigateToPlaygorund}
-        >
-          Play
-        </IonButton>
-        {/* <IonNavLink routerDirection="forward" component={() => <PlaygroundPage />}>
-          <IonButton onClick={navigateToPlaygorund}>Play</IonButton>
-        </IonNavLink> */}
-      </Box >
-      <div
-        ref={blockRef}
-        style={{
-          position: 'relative',
-          height: '90vh',
-          width: '100%',
-          overflow: 'auto',
-          display: 'flex',
-          flexDirection: 'column',
-          touchAction: 'none',
-          WebkitOverflowScrolling: 'touch',
+    // <IonPage>
+      <div style={{
+        margin: "30px 10px 10px 10px",
+        height: "94vh",
+        overflowY: "scroll"
+      }}>
+        <CommonCard style={{ padding: "20px", maxWidth: "100%", minWidth: "340px" }}>
+          <div
+            ref={blockRef}
+            style={{
+              position: 'relative',
+              height: '70vh',
+              width: '100%',
+              overflow: 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              touchAction: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          />
+          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "4px" }}>
+            <CustomButton icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+            <CustomButton icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          </div>
+        </CommonCard>
+
+        {/* <div className="canvas-container">
+        <canvas ref={canvasRef} className="playground-canvas" />
+      </div> */}
+
+        {
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            justifyContent: 'center',
+            gap: 8,
+            marginTop: "8px"
+          }}>
+            {vmRef.current?.runtime?.targets
+              .filter(t => t.isSprite || t.isStage)
+              .map(sprite => {
+                const costume = sprite.getCurrentCostume();
+                const asset = costume?.asset;
+                const imageUrl = asset ? getImageFromAsset(asset) : null;
+
+                return (
+                  <div onClick={() => handleSpriteClick(sprite.id)}>
+                    <CommonCard key={sprite.id} style={{ padding: 5 }} bottomText={sprite.getName()} border={sprite.id === selectedSpriteId ? true : false}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                        {imageUrl && (
+                          <img src={imageUrl} alt={sprite.getName()} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                        )}
+                      </div>
+                    </CommonCard>
+                  </div>
+                );
+              })}
+
+          </div>
         }
-        }
-      />
-    </>
+      </div>
+    // </IonPage>
   );
 }

@@ -1,0 +1,53 @@
+.main-layout {
+  background: url('/app_background.svg') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  padding-bottom: 2vh;
+}
+
+.bottom-strap {
+  height: 20px;
+  background-color: #29B0FF;
+  width: 100%;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+}
+
+
+.custom-tab-bar {
+  --background: #29b0ff;
+  border-top: 5px solid #fcd700;
+  height: 8vh;
+  padding-top: 4px;
+  position: relative;
+  bottom: 0vh;
+  z-index: -1;
+}
+
+.custom-tab-bar ion-tab-button {
+  --color: #0c4b77;
+  --color-selected: white;
+  font-weight: bold;
+  font-size: 14px;
+  flex-direction: column;
+}
+
+.custom-tab-bar ion-tab-button.tab-selected {
+  background-color: #0a6fa5;
+  border-left: 2px solid #fcd700;
+  border-right: 2px solid #fcd700;
+}
+
+.custom-tab-bar ion-tab-button.active-tab ion-icon {
+  filter: brightness(0) invert(1);
+}

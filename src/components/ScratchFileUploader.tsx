@@ -7,12 +7,12 @@ const ACCEPT = '.sb,.sb2,.sb3';
 
 export default function ScratchFileUploader() {
   const vm               = useScratchVm();
-  const inputRef         = useRef(null);
+  const inputRef         = useRef<HTMLInputElement>(null);
   const [busy, setBusy]  = useState(false);
 
   const pickFile = () => inputRef.current?.click();
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setBusy(true);
@@ -24,7 +24,7 @@ export default function ScratchFileUploader() {
           const m = file.name.match(/^(.*)\.sb[23]?$/);
           if (m) document.title = m[1].slice(0, 100);
         })
-        .catch((err) => alert('Failed to load project:\n' + err))
+        .catch((err: any) => alert('Failed to load project:\n' + err))
         .finally(() => setBusy(false));
     };
     reader.readAsArrayBuffer(file);

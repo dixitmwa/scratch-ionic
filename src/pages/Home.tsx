@@ -5,19 +5,16 @@ import { PDFDocument } from 'pdf-lib';
 import { useIonRouter } from '@ionic/react';
 import { useState } from 'react';
 import { DocumentScanner } from 'capacitor-document-scanner'
-import { ScanbotSDK } from 'capacitor-plugin-scanbot-sdk';
 import { startDocumentScanner, DocumentScanningFlow } from 'capacitor-plugin-scanbot-sdk/ui_v2';
 import { Capacitor } from '@capacitor/core';
 import { Preferences } from '@capacitor/preferences';
 import { setProjectFile } from '../components/commonfunction';
-import SafeAreaView from '../theme/SafeAreaView';
 
 const HomePage = () => {
     const router = useIonRouter();
     const [showLoading, setShowLoading] = useState(false);
     const [scannedDocs, setScannedDocs] = useState<any>([]);
     const [isLoading, setIsLoading] = useState(false);
-    const [showAlert, setShowAlert] = useState(false);
     const [alertMessage, setAlertMessage] = useState();
     const [scannedImageUri, setScannedImageUri] = useState();
     const [errorShow, setErrorShow] = useState<any>();
@@ -57,6 +54,7 @@ const HomePage = () => {
         const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
         debugger
         const formData = new FormData();
+        debugger
         formData.append('pdf_file', pdfBlob, 'photo.pdf');
 
         fetch('https://prthm11-scratch-vision-game.hf.space/process_pdf', {
@@ -82,7 +80,6 @@ const HomePage = () => {
         const { scannedImages } = await DocumentScanner.scanDocument({
             maxNumDocuments: 1
         })
-        debugger;
         console.log("scannedImages", scannedImages)
         setAlertMessage(scannedImages)
         if (scannedImages && scannedImages?.length > 0) {
@@ -93,11 +90,38 @@ const HomePage = () => {
 
                 const pdfDoc = await PDFDocument.create();
 
+                // for (const imageUri of scannedImages) {
+                //     const response = await fetch(Capacitor.convertFileSrc(imageUri));
+                //     const imageBlob = await response.blob();
+                //     const imageArrayBuffer = await imageBlob.arrayBuffer();
+
+                //     const imageMimeType = imageUri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+                //     let embeddedImage;
+                //     if (imageMimeType === 'image/jpeg') {
+                //         embeddedImage = await pdfDoc.embedJpg(imageArrayBuffer);
+                //     } else {
+                //         embeddedImage = await pdfDoc.embedPng(imageArrayBuffer);
+                //     }
+
+                //     const page = pdfDoc.addPage([595, 842]);
+                //     const { width, height } = embeddedImage.scale(0.5);
+
+                //     page.drawImage(embeddedImage, {
+                //         x: 50,
+                //         y: 700,
+                //         width,
+                //         height,
+                //     });
+                // }
+
                 for (const imageUri of scannedImages) {
+                    // Fetch image data
                     const response = await fetch(Capacitor.convertFileSrc(imageUri));
                     const imageBlob = await response.blob();
                     const imageArrayBuffer = await imageBlob.arrayBuffer();
 
+                    // Determine image type (assume jpeg unless png)
                     const imageMimeType = imageUri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
 
                     let embeddedImage;
@@ -107,14 +131,29 @@ const HomePage = () => {
                         embeddedImage = await pdfDoc.embedPng(imageArrayBuffer);
                     }
 
-                    const page = pdfDoc.addPage([595, 842]);
-                    const { width, height } = embeddedImage.scale(0.5);
+                    // A4 in points: 595 x 842
+                    const PAGE_WIDTH = 595;
+                    const PAGE_HEIGHT = 842;
 
+                    const imageWidth = embeddedImage.width;
+                    const imageHeight = embeddedImage.height;
+
+                    const scaleX = PAGE_WIDTH / imageWidth;
+                    const scaleY = PAGE_HEIGHT / imageHeight;
+                    const scale = Math.min(scaleX, scaleY);
+
+                    const drawWidth = imageWidth * scale;
+                    const drawHeight = imageHeight * scale;
+
+                    const x = (PAGE_WIDTH - drawWidth) / 2;
+                    const y = (PAGE_HEIGHT - drawHeight) / 2;
+
+                    const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
                     page.drawImage(embeddedImage, {
-                        x: 50,
-                        y: 700,
-                        width,
-                        height,
+                        x,
+                        y,
+                        width: drawWidth,
+                        height: drawHeight,
                     });
                 }
 
@@ -122,6 +161,7 @@ const HomePage = () => {
                 const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
 
                 const formData = new FormData();
+                debugger
                 formData.append('pdf_file', pdfBlob, 'scanned_document.pdf');
 
                 const response = await fetch('https://prthm11-scratch-vision-game.hf.space/process_pdf', {
@@ -166,45 +206,33 @@ const HomePage = () => {
 
     return (
         <>
-            <IonPage>
-                <IonHeader>
-                    <IonToolbar color="primary">
-                        <IonTitle>Scratch Vision</IonTitle>
-                    </IonToolbar>
-                </IonHeader>
-
-                <IonContent fullscreen>
-                    <SafeAreaView>
-                        {scannedImageUri && (
-                            <img
-                                src={scannedImageUri}
-                                alt="Scanned"
-                                style={{ width: '100%', maxWidth: 400, margin: '20px 0', border: '1px solid #ccc' }}
-                            />
-                        )}
-                        <IonButton
-                            expand="block"
-                            onClick={scanDocument}
-                            disabled={isLoading}
-                            className="ion-margin-bottom"
-                        >
-                            Scan Document (ML Kit)
-                        </IonButton>
-                        <IonButton onClick={startDocumentScanner}>Start Document Scanner</IonButton>
-                        <Button variant="contained" onClick={takePhoto}>Take Photo</Button>
-                    </SafeAreaView>
-                </IonContent>
-                <div id="scannedImage"></div>
-                {/* <p>{alertMessage}</p>
+            {scannedImageUri && (
+                <img
+                    src={scannedImageUri}
+                    alt="Scanned"
+                    style={{ width: '100%', maxWidth: 400, margin: '20px 0', border: '1px solid #ccc' }}
+                />
+            )}
+            <IonButton
+                expand="block"
+                onClick={scanDocument}
+                disabled={isLoading}
+                className="ion-margin-bottom"
+            >
+                Scan Document (ML Kit)
+            </IonButton>
+            <IonButton onClick={startDocumentScanner}>Start Document Scanner</IonButton>
+            <Button variant="contained" onClick={takePhoto}>Take Photo</Button>
+            <div id="scannedImage"></div>
+            {/* <p>{alertMessage}</p>
                 <p>{errorShow}</p> */}
 
-                <IonLoading
-                    isOpen={showLoading}
-                    onDidDismiss={() => setShowLoading(false)}
-                    message={'Please wait...'}
-                    spinner="circles"
-                />
-            </IonPage>
+            <IonLoading
+                isOpen={showLoading}
+                onDidDismiss={() => setShowLoading(false)}
+                message={'Please wait...'}
+                spinner="circles"
+            />
         </>
     )
 }

@@ -1,2 +1,9 @@
 /* For information on how to create your own theme, please see:
 http://ionicframework.com/docs/theming/ */
+:root {
+    --ion-color-student: #29B0FF;
+    --ion-color-student-contrast: #ffffff;
+
+    --ion-color-teacher: #FFD700;
+    --ion-color-teacher-contrast: #ffffff;
+}

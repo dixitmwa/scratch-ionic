@@ -1,42 +1,347 @@
-import {
-  IonPage, IonHeader, IonToolbar, IonTitle,
-  IonContent
-} from '@ionic/react';
-import { useState } from 'react';
-import { ScratchProvider } from '../scratch/ScratchProvider';
-import useScratchVm from '../scratch/useScratchVm';
-import DroppableWorkspaceWrapper from '../components/DroppableWorkspaceWrapper';
-import SafeAreaView from '../theme/SafeAreaView';
+import { IonButton, IonIcon, IonPage, useIonViewWillEnter } from "@ionic/react";
+import { useRef, useState } from "react";
+import { ScratchProvider } from "../scratch/ScratchProvider";
+import useScratchVm from "../scratch/useScratchVm";
+import { Capacitor } from "@capacitor/core";
+import { PDFDocument } from "pdf-lib";
+import { DocumentScanner } from "capacitor-document-scanner";
+import { Preferences } from "@capacitor/preferences";
+import { Button } from "@mui/material";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
+import { useHistory } from "react-router";
+import ScannerSvg from "../assets/scanner.svg";
+import { informationCircleOutline } from "ionicons/icons";
+import CustomButton from "../components/common-component/Button";
+import InfoScanner from "../assets/info_scanner.svg"
 
 export default function EditorPage() {
+  const history = useHistory();
   const vm = useScratchVm();
-  const [dirty, setDirty] = useState(false);
+  const containerRef = useRef(null);
+  const [imageUploaded, setImageUploaded] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isStudent, setIsStudent] = useState(true)
+
+  const takePhoto = async () => {
+    setLoading(true);
+    history.push("/tabs/scratch-editor");
+    const photo = await Camera.getPhoto({
+      resultType: CameraResultType.Base64,
+      source: CameraSource.Camera,
+      quality: 100,
+    });
+    debugger;
+    // setShowLoading(true);
+    const pdfDoc = await PDFDocument.create();
+    const page = pdfDoc.addPage([595, 842]);
+
+    const imageMimeType = photo.format === "jpeg" ? "image/jpeg" : "image/png";
+
+    const base64Data = photo.base64String!;
+    const byteArray = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+
+    let embeddedImage;
+    if (imageMimeType === "image/jpeg") {
+      embeddedImage = await pdfDoc.embedJpg(byteArray);
+    } else {
+      embeddedImage = await pdfDoc.embedPng(byteArray);
+    }
+
+    const { width, height } = embeddedImage.scale(0.5);
+    page.drawImage(embeddedImage, {
+      x: 50,
+      y: 700,
+      width,
+      height,
+    });
+
+    const pdfBytes = await pdfDoc.save();
+    const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+    debugger;
+    const formData = new FormData();
+    debugger;
+    formData.append("pdf_file", pdfBlob, "photo.pdf");
+
+    fetch("https://prthm11-scratch-vision-game.hf.space/process_pdf", {
+      method: "POST",
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("data", data);
+        localStorage.setItem("project", data?.test_url);
+        Preferences.set({ key: "project", value: data?.test_url });
+        setImageUploaded(true);
+        setLoading(false);
+        // setProjectFile(data?.test_url)
+        // setShowLoading(false);
+        history.push("/tabs/scratch-editor");
+        // ionRouter.push('/scratch-editor', 'forward', 'replace');
+      })
+      .catch((error) => {
+        setLoading(false);
+        console.error("Error processing PDF:", error);
+        // setShowLoading(false);
+      });
+  };
+
+  const scanDocument = async () => {
+    setLoading(true);
+    // history.push("/tabs/scratch-editor");
+    const { scannedImages } = await DocumentScanner.scanDocument({
+      maxNumDocuments: 5,
+    });
+    debugger;
+    console.log("scannedImages", scannedImages);
+    // setAlertMessage(scannedImages)
+    if (scannedImages && scannedImages?.length > 0) {
+      // setShowLoading(true);
+      try {
+        const displayUri = Capacitor.convertFileSrc(scannedImages[0]);
+        // setScannedImageUri(displayUri);
+
+        const pdfDoc = await PDFDocument.create();
+
+        // for (const imageUri of scannedImages) {
+        //     const response = await fetch(Capacitor.convertFileSrc(imageUri));
+        //     const imageBlob = await response.blob();
+        //     const imageArrayBuffer = await imageBlob.arrayBuffer();
+
+        //     const imageMimeType = imageUri.toLowerCase().endsWith('.png') ? 'image/png' : 'image/jpeg';
+
+        //     let embeddedImage;
+        //     if (imageMimeType === 'image/jpeg') {
+        //         embeddedImage = await pdfDoc.embedJpg(imageArrayBuffer);
+        //     } else {
+        //         embeddedImage = await pdfDoc.embedPng(imageArrayBuffer);
+        //     }
+
+        //     const page = pdfDoc.addPage([595, 842]);
+        //     const { width, height } = embeddedImage.scale(0.5);
+
+        //     page.drawImage(embeddedImage, {
+        //         x: 50,
+        //         y: 700,
+        //         width,
+        //         height,
+        //     });
+        // }
+
+        for (const imageUri of scannedImages) {
+          // Fetch image data
+          const response = await fetch(Capacitor.convertFileSrc(imageUri));
+          const imageBlob = await response.blob();
+          const imageArrayBuffer = await imageBlob.arrayBuffer();
+
+          // Determine image type (assume jpeg unless png)
+          const imageMimeType = imageUri.toLowerCase().endsWith(".png")
+            ? "image/png"
+            : "image/jpeg";
+
+          let embeddedImage;
+          if (imageMimeType === "image/jpeg") {
+            embeddedImage = await pdfDoc.embedJpg(imageArrayBuffer);
+          } else {
+            embeddedImage = await pdfDoc.embedPng(imageArrayBuffer);
+          }
+
+          // A4 in points: 595 x 842
+          const PAGE_WIDTH = 595;
+          const PAGE_HEIGHT = 842;
+
+          const imageWidth = embeddedImage.width;
+          const imageHeight = embeddedImage.height;
+
+          const scaleX = PAGE_WIDTH / imageWidth;
+          const scaleY = PAGE_HEIGHT / imageHeight;
+          const scale = Math.min(scaleX, scaleY);
+
+          const drawWidth = imageWidth * scale;
+          const drawHeight = imageHeight * scale;
+
+          const x = (PAGE_WIDTH - drawWidth) / 2;
+          const y = (PAGE_HEIGHT - drawHeight) / 2;
+
+          const page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
+          page.drawImage(embeddedImage, {
+            x,
+            y,
+            width: drawWidth,
+            height: drawHeight,
+          });
+        }
+
+        const pdfBytes = await pdfDoc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+
+        const formData = new FormData();
+        debugger;
+        formData.append("pdf_file", pdfBlob, "scanned_document.pdf");
+
+        const response = await fetch(
+          "https://prthm11-scratch-vision-game.hf.space/process_pdf",
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+        localStorage.setItem("project", data?.test_url);
+        console.log("data", data);
+        await Preferences.set({ key: "project", value: data?.test_url });
+        // setProjectFile(data?.test_url)
+        // setShowLoading(false);
+        // router.push('/editor', 'root');
+        setLoading(false);
+        history.push("/tabs/scratch-editor");
+
+        ionRouter.push("/scratch-editor", "forward", "replace");
+        setImageUploaded(true);
+      } catch (e) {
+        setLoading(false);
+        // setErrorShow(e)
+        console.log("eee", e);
+      }
+    }
+  };
+
+  const fetchUserType = async () => {
+    const { value } = await Preferences.get({ key: "userType" })
+    if (value === "student") {
+      setIsStudent(true)
+    } else {
+      setIsStudent(false)
+    }
+  }
+
+  useIonViewWillEnter(() => {
+    fetchUserType()
+  })
 
   return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar color="primary">
-          <IonTitle>Scratch Vision</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
-      <IonContent fullscreen className='ion-padding'>
-        <SafeAreaView>
-          <ScratchProvider>
-            {/* <ScratchFileUploaderV1
-            vm={vm}
-            projectChanged={dirty}
-            projectOwner="alice"
-            currentUser="alice"
-            onProjectLoaded={() => setDirty(false)}
-          /> */}
-            <DroppableWorkspaceWrapper />
-          </ScratchProvider>
-        </SafeAreaView>
-        {/* <div style={{ height: '70vh' }}>
-          <ScratchWorkspace />
-        </div> */}
-      </IonContent>
-    </IonPage>
+    <ScratchProvider>
+      {/* <IonPage> */}
+      <>
+        {loading ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100vh",
+              background: "rgb(0 0 0 / 60%)",
+            }}
+          >
+            <p
+              style={{
+                color: "white",
+                fontWeight: 600,
+                fontSize: "66px",
+                textTransform: "uppercase",
+              }}
+            >
+              Loading...
+            </p>
+          </div>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              flexGrow: 1,
+              height: "79vh",
+              maxHeight: "79vh",
+              maxWidth: "366px",
+              margin: "0 auto",
+              width: "100%",
+              marginTop: "6vh",
+              overflowY: "scroll",
+            }}
+          >
+            {/* <CommonCard style={{ padding: "20px", width: "100%", height: "78vh" }}> */}
+            <p
+              style={{
+                fontSize: "24px",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                color: "#607E9C",
+                textAlign: "center",
+                marginTop: "0px"
+              }}
+            >
+              Align the Corners to Scan
+            </p>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                margin: "10px",
+              }}
+            >
+              <img
+                src={ScannerSvg}
+                alt="scanner"
+                style={{ maxHeight: "45vh" }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "5px",
+                margin: "10px",
+              }}
+            >
+              <IonIcon
+                icon={InfoScanner}
+                style={{ fontSize: "45px", color: "#607E9C" }}
+              />
+              <p
+                style={{
+                  fontSize: "16px",
+                  fontWeight: 600,
+                  color: "#607E9C",
+                  textTransform: "uppercase",
+                }}
+              >
+                Place all 4 corner dots within the frame for accurate
+                scanning.
+              </p>
+            </div>
+            <CustomButton
+              btnText="START SCANNING"
+              background="#FF8D29"
+              onClick={scanDocument}
+            />
+            {
+              !isStudent && (
+                <CustomButton
+                  btnText="My Library"
+                  background="#D929FF"
+                  onClick={()=> history.push("/tabs/editor/my-library")}
+                />
+              )
+            }
+            <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
+              Take Photo
+            </Button>
+            {/* <IonButton
+              expand="block"
+              onClick={scanDocument}
+              // disabled={isLoading}
+              className="ion-margin-bottom"
+            >
+              Scan Document (ML Kit)
+            </IonButton> */}
+            {/* </CommonCard> */}
+          </div>
+        )}
+      </>
+      {/* </IonPage> */}
+    </ScratchProvider>
   );
 }

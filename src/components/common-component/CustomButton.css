@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+.role-button {
+  font-family: "Fredoka", sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 14px 28px;
+  border-radius: 9999px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+  font-size: 24px;
+  font-weight: bold;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  height: 60px;
+  width: 100%;
+}
+
+.role-button span {
+  /* background: var(--button-fill); */
+  padding: 10px 22px;
+  border-radius: 9999px;
+  color: white;
+  font-size: 16px;
+}
+
+.role-button:active {
+  transform: scale(0.96);
+}

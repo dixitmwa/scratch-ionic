@@ -1,23 +1,31 @@
-import { IonButton, IonContent, IonIcon, IonPage, IonText, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react';
+import { IonButton, IonIcon, IonPage, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react';
 import { useEffect, useRef, useState } from 'react';
 import { attachRendererIfNone, disposeRenderer, getProjectBuffer, getSavedProjectBuffer, getUploadedProjectBuffer, getVMInstance } from '../scratchVMInstance';
-import { Button } from '@mui/material';
 import '../css/playground.css'
 import { ScreenOrientation } from '@capacitor/screen-orientation';
-import SafeAreaView from '../theme/SafeAreaView';
-import { ScreenRecorder } from '@capgo/capacitor-screen-recorder';
 import { Capacitor } from '@capacitor/core';
 import { arrowBackCircle, arrowForwardCircle, arrowUpCircle, arrowDownCircle, flag, ellipse, aperture, home, accessibility } from 'ionicons/icons'
+import { useReactMediaRecorder } from 'react-media-recorder';
+import CustomButton from '../components/common-component/Button';
+import { Preferences } from '@capacitor/preferences';
+import { useHistory } from 'react-router';
+import GreenFlag from '../assets/green_flag.svg'
+import Home from '../assets/home.svg'
+import Record from '../assets/record.svg'
+import UpArrow from '../assets/up_arrow.svg'
+import DownArrow from '../assets/down_arrow.svg'
+import LeftArrow from '../assets/left_arrow_playground.svg'
+import RightArrow from '../assets/right_arrow_playground.svg'
+import Jump from '../assets/jump.svg'
 
 const PlaygroundPage = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const vm = getVMInstance();
     const router = useIonRouter()
+    const history = useHistory()
     const [recording, setRecording] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [videoUri, setVideoUri] = useState<string | null>(null);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const { status, startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ video: true });
 
     const fetchProjectBuffer = async () => {
         return await getProjectBuffer();
@@ -34,12 +42,29 @@ const PlaygroundPage = () => {
         vm.stopAll();
     }
 
+    function base64ToUint8Array(base64) {
+        const binaryString = atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+    }
+
     const run = async () => {
-        const buffer = getUploadedProjectBuffer(); // Uint8Array ✅
-        const projectBuffer = await fetchProjectBuffer(); // ✅ Await here
-        const buffer123 = await getSavedProjectBuffer();
-        console.log("buffer", buffer, buffer123);
-        console.log("projectBuffer", new Uint8Array(projectBuffer)); // Also valid sb3
+        let buffer;
+        // const projectBuffer = await fetchProjectBuffer();
+        // const buffer123 = await getSavedProjectBuffer();
+        // console.log("buffer", buffer, buffer123);
+        // console.log("projectBuffer", new Uint8Array(projectBuffer));
+
+        const { value: base64 } = await Preferences.get({ key: "buffer_base64" });
+
+        if (base64) {
+            buffer = base64ToUint8Array(base64);
+            console.log("Retrieved buffer:", buffer);
+        }
 
         attachRendererIfNone(canvasRef.current!);
 
@@ -49,11 +74,10 @@ const PlaygroundPage = () => {
                 await vm.loadProject(buffer);
                 const xml1 = vm.editingTarget.blocks.toXML();
 
-                await vm.loadProject(buffer123);
-                const xml2 = vm.editingTarget.blocks.toXML();
+                // await vm.loadProject(buffer123);
+                // const xml2 = vm.editingTarget.blocks.toXML();
 
                 console.log("XML from buffer:", xml1);
-                console.log("XML from buffer123:", xml2);
                 console.log("Project loaded into playground");
                 setTimeout(() => {
                     const editingTarget = vm.editingTarget;
@@ -84,7 +108,7 @@ const PlaygroundPage = () => {
     };
 
     const handleBack = () => {
-        router.push('/editor', 'root');
+        history.push('/tabs/scratch-editor');
     };
 
     const checkRecordingPermissions = async () => {
@@ -100,68 +124,100 @@ const PlaygroundPage = () => {
         return true;
     };
 
-    const startRecording = async () => {
-        if (!Capacitor.isNativePlatform()) {
-            setErrorMsg('Screen recording is only available on native platforms');
-            return;
-        }
+    // const startRecording = async () => {
+    //     if (!Capacitor.isNativePlatform()) {
+    //         setErrorMsg('Screen recording is only available on native platforms');
+    //         return;
+    //     }
 
-        try {
-            setLoading(true);
-            setErrorMsg(null);
-            const hasPermission = await checkRecordingPermissions();
-            if (!hasPermission) {
-                setErrorMsg('Screen recording permission denied');
-                return;
-            }
+    //     try {
+    //         setLoading(true);
+    //         setErrorMsg(null);
+    //         const hasPermission = await checkRecordingPermissions();
+    //         if (!hasPermission) {
+    //             setErrorMsg('Screen recording permission denied');
+    //             return;
+    //         }
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+    //         console.log('Starting screen recording...');
+    //         setTimeout(() => {
+    //             ScreenRecorder.start({
+    //                 recordAudio: false,
+    //             });
+    //         }, 10000);
+    //         setRecording(true);
+    //         console.log('Recording started successfully');
 
-            console.log('Starting screen recording...');
-            await ScreenRecorder.start({
-                recordAudio: true,
-            });
+    //     } catch (error: any) {
+    //         console.error('Recording start error:', error);
 
-            setRecording(true);
-            console.log('Recording started successfully');
+    //         let errorMessage = 'Failed to start recording';
+    //         if (error.message && error.message.includes('prepare failed')) {
+    //             errorMessage = 'Recording setup failed. Please ensure the app has screen recording permissions and try again.';
+    //         } else if (error.message && error.message.includes('permission')) {
+    //             errorMessage = 'Screen recording permission denied. Please enable it in Android settings.';
+    //         } else if (error.message) {
+    //             errorMessage = `Recording error: ${error.message}`;
+    //         }
 
-        } catch (error: any) {
-            console.error('Recording start error:', error);
+    //         setErrorMsg(errorMessage);
+    //         setRecording(false);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
-            let errorMessage = 'Failed to start recording';
-            if (error.message && error.message.includes('prepare failed')) {
-                errorMessage = 'Recording setup failed. Please ensure the app has screen recording permissions and try again.';
-            } else if (error.message && error.message.includes('permission')) {
-                errorMessage = 'Screen recording permission denied. Please enable it in Android settings.';
-            } else if (error.message) {
-                errorMessage = `Recording error: ${error.message}`;
-            }
+    // const startRecording = async () => {
+    //     try {
+    //         console.log("navigator.mediaDevices", JSON.stringify(navigator.mediaDevices))
+    //         const stream = await (navigator.mediaDevices as any).getDisplayMedia({
+    //             video: { mediaSource: 'screen' }
+    //         });
 
-            setErrorMsg(errorMessage);
-            setRecording(false);
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         const mediaRecorder = new MediaRecorder(stream);
+    //         mediaRecorderRef.current = mediaRecorder;
 
-    const stopRecording = async () => {
-        try {
-            setLoading(true);
-            setErrorMsg(null);
-            const result: any = await ScreenRecorder.stop();
-            setRecording(false);
+    //         mediaRecorder.ondataavailable = (event) => {
+    //             if (event.data.size > 0) recordedChunks.push(event.data);
+    //         };
 
-            if (result?.value) {
-                setVideoUri(result.value);
-            } else {
-                setVideoUri(null);
-            }
-        } catch (e: any) {
-            setErrorMsg(`Failed to stop recording: ${e.message || e}`);
-        } finally {
-            setLoading(false);
-        }
-    };
+    //         mediaRecorder.onstop = () => {
+    //             const blob = new Blob(recordedChunks, {
+    //                 type: 'video/webm'
+    //             });
+    //             setVideoURL(URL.createObjectURL(blob));
+    //         };
+
+    //         mediaRecorder.start();
+    //         setRecording(true);
+    //     } catch (err) {
+    //         console.error('Error: ' + err);
+    //     }
+    // };
+
+    // const stopRecording = () => {
+    //     mediaRecorderRef.current?.stop();
+    //     setRecording(false);
+    // };
+
+    // const stopRecording = async () => {
+    //     try {
+    //         setLoading(true);
+    //         setErrorMsg(null);
+    //         const result: any = await ScreenRecorder.stop();
+    //         setRecording(false);
+
+    //         if (result?.value) {
+    //             setVideoUri(result.value);
+    //         } else {
+    //             setVideoUri(null);
+    //         }
+    //     } catch (e: any) {
+    //         setErrorMsg(`Failed to stop recording: ${e.message || e}`);
+    //     } finally {
+    //         setLoading(false);
+    //     }
+    // };
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -177,8 +233,8 @@ const PlaygroundPage = () => {
         // } else {
         //     console.warn("No uploaded project buffer found");
         // }
-        // lockOrientation();
-        // run()
+        lockOrientation();
+        run()
 
         const handleKeyDown = (e: any) => {
 
@@ -207,17 +263,6 @@ const PlaygroundPage = () => {
                 key: key,
                 isDown: false
             });
-            // if (e.key === ' ') {
-            //     vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })
-            // }
-            // if (e.key === 'ArrowLeft') {
-            //     vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })
-            //     vm.postIOData('keyboard', { keyCode: 37, key: 'ArrowLeft', isDown: false });
-            // }
-            // if (e.key === 'ArrowRight') {
-            //     vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })
-            //     vm.postIOData('keyboard', { key: 'ArrowRight', isDown: false });
-            // }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -242,86 +287,50 @@ const PlaygroundPage = () => {
     })
 
     return (
-        <IonPage>
-            <IonContent fullscreen className='ion-padding'>
-                <SafeAreaView>
-                    <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexDirection: "column" }}>
-                        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                            {/* <Button variant='contained' onClick={() => vm.greenFlag()} >Play</Button> */}
-                            <IonButton fill="clear" style={{ opacity: gameStarted ? 0.5 : 1 }} onClick={() => startGame()}>
-                                <IonIcon color={'success'} slot="icon-only" icon={flag} />
-                            </IonButton>
-                            <IonButton fill="clear" onClick={() => vm.stopAll()}>
-                                <IonIcon color="danger" slot="icon-only" icon={ellipse} />
-                            </IonButton>
-                            <IonButton fill="clear" onClick={() => handleBack()}>
-                                <IonIcon color='danger' slot='icon-only' icon={home} />
-                            </IonButton>
-                            <IonButton shape="round" className="right"
-                                onTouchStart={() => vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })}
-                                onTouchEnd={() => vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })}
-                                onMouseDown={() => vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })}
-                                onMouseUp={() => vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })}>
-                                <IonIcon slot="icon-only" icon={accessibility} />
-                            </IonButton>
-                            {!recording ? (
-                                <IonButton fill="clear" onClick={startRecording}>
-                                    <IonIcon slot="icon-only" color='medium' icon={aperture} />
-                                </IonButton>
-                            ) : (
-                                <IonButton color="danger" fill="clear" onClick={stopRecording}>
-                                    <IonIcon slot="icon-only" color='danger' icon={aperture} />
-                                </IonButton>
-                            )}
-                        </div>
-                        <div className="playground-wrapper">
-                            <div className='left'>
-                                <IonButton
-                                    shape="round"
-                                    className="arrow-button left"
-                                    onTouchStart={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: true })}
-                                    onTouchEnd={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })}
-                                >
-                                    <IonIcon slot="icon-only" icon={arrowBackCircle} />
-                                </IonButton>
+        // <IonPage>
+            <div className="playground-wrapper">
+                {/* Left Control Buttons */}
+                <div className="left" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <CustomButton icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: true })
+                    } onRelease={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: false })
+                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: true })
+                    } onRelease={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: false })
+                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                </div>
 
-                                <IonButton
-                                    shape="round"
-                                    className="arrow-button left"
-                                    onTouchStart={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: true })}
-                                    onTouchEnd={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })}
-                                >
-                                    <IonIcon slot="icon-only" icon={arrowForwardCircle} />
-                                </IonButton>
-                            </div>
-                            <div className="canvas-container">
-                                <canvas ref={canvasRef} className="playground-canvas" />
-                            </div>
-                            <div className='right'>
-                                <IonButton
-                                    shape="round"
-                                    className="arrow-button"
-                                    onTouchStart={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: true })}
-                                    onTouchEnd={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: false })}
-                                >
-                                    <IonIcon slot="icon-only" icon={arrowUpCircle} />
-                                </IonButton>
-                                <IonButton
-                                    shape="round"
-                                    className="arrow-button"
-                                    onTouchStart={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: true })}
-                                    onTouchEnd={() => vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: false })}
-                                >
-                                    <IonIcon slot="icon-only" icon={arrowDownCircle} />
-                                </IonButton>
-                            </div>
-                            {/* <div className="accessibility-button-wrapper"> */}
-                            {/* </div> */}
-                        </div>
-                    </div>
-                </SafeAreaView>
-            </IonContent>
-        </IonPage >
+                {/* Center Game Canvas */}
+                <div className="canvas-container">
+                    <canvas ref={canvasRef} className="playground-canvas" />
+                </div>
+
+                {/* Right Control Buttons */}
+                <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    <CustomButton icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={stopGame} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })
+                    } onRelease={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })
+                    } background="#FFFFFF" txtColor="#FF8429" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={LeftArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: true })
+                    } onRelease={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })
+                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton icon={<IonIcon icon={RightArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: true })
+                    } onRelease={() =>
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })
+                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                </div>
+            </div>
+        // </IonPage>
     );
 };
 

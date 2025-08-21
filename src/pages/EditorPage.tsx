@@ -1,5 +1,5 @@
-import { IonButton, IonIcon, IonPage, useIonViewWillEnter } from "@ionic/react";
-import { useRef, useState } from "react";
+import { IonButton, IonIcon, IonPage, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
+import { useEffect, useRef, useState } from "react";
 import { ScratchProvider } from "../scratch/ScratchProvider";
 import useScratchVm from "../scratch/useScratchVm";
 import { Capacitor } from "@capacitor/core";
@@ -21,6 +21,8 @@ export default function EditorPage() {
   const [imageUploaded, setImageUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isStudent, setIsStudent] = useState(true)
+
+  console.log(isStudent)
 
   const takePhoto = async () => {
     setLoading(true);
@@ -87,7 +89,7 @@ export default function EditorPage() {
 
   const scanDocument = async () => {
     setLoading(true);
-    // history.push("/tabs/scratch-editor");
+    history.push("/tabs/scratch-editor");
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
@@ -208,6 +210,7 @@ export default function EditorPage() {
 
   const fetchUserType = async () => {
     const { value } = await Preferences.get({ key: "userType" })
+    console.log("value------", value)
     if (value === "student") {
       setIsStudent(true)
     } else {
@@ -215,9 +218,13 @@ export default function EditorPage() {
     }
   }
 
-  useIonViewWillEnter(() => {
+  useIonViewDidEnter(() => {
     fetchUserType()
   })
+
+  useEffect(()=>{
+    fetchUserType()
+  },[])
 
   return (
     <ScratchProvider>
@@ -322,7 +329,8 @@ export default function EditorPage() {
                 <CustomButton
                   btnText="My Library"
                   background="#D929FF"
-                  onClick={()=> history.push("/tabs/editor/my-library")}
+                  style={{ marginTop: "10px" }}
+                  onClick={() => history.push("/tabs/editor/my-library")}
                 />
               )
             }

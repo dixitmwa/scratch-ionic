@@ -3,8 +3,9 @@ import { chevronBackOutline } from "ionicons/icons";
 const CommonModal = ({
     description,
     title,
-    onClick
-}: { description: string, title: string, onClick: () => void }) => {
+    onClick,
+    children
+}: { description?: string, title: string, onClick: () => void, children?: React.ReactNode }) => {
     return (
         <div style={{
             background: "#FFF",
@@ -15,7 +16,8 @@ const CommonModal = ({
             width: "100%",
             gap: "20px",
             height: "70vh",
-            color: "#607E9C"
+            color: "#607E9C",
+            overflowY: "scroll"
         }}>
             <div style={{
                 display: "flex",
@@ -41,11 +43,19 @@ const CommonModal = ({
                 width: "100%",
                 height: "1px"
             }}></div>
-            <div>
-                <p style={{
-                    fontSize: "18px",
-                }}>{description}</p>
-            </div>
+            {
+                description && (
+                    <div>
+                        <p style={{
+                            fontSize: "18px",
+                        }}>{description}</p>
+                    </div>
+                )
+            }
+            {/* <div
+                dangerouslySetInnerHTML={{ __html: children }}
+            /> */}
+            {children}
         </div>
     )
 }

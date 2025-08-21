@@ -4,16 +4,18 @@ const CommonCard = ({
     children,
     style = {},
     border = false,
+    onClick = () => { }
 }: {
     headerText?: string;
     bottomText?: string;
     children: React.ReactNode;
     style?: React.CSSProperties;
     border?: boolean;
+    onClick?: () => void
 }) => {
 
     return (
-        <div>
+        <div onClick={onClick}>
             <div style={{
                 background: "#FFF",
                 boxShadow: "0 2px 2px 0 rgba(0, 0, 0, 0.15)",

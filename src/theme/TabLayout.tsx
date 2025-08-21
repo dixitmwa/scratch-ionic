@@ -23,6 +23,14 @@ import ProfileTab from "../assets/profile_tab.svg"
 import ClassroomTab from "../assets/classroom.svg"
 import ProjectDetailsPage from "../pages/ProjectDetails";
 import { Preferences } from "@capacitor/preferences";
+import CodeHistoryPage from "../pages/CodeHistoryPage";
+import ClassroomPage from "../pages/ClassroomPage";
+import ClassroomCreatePage from "../pages/ClassroomCreatePage";
+import ClassroomDetailsPage from "../pages/ClassroomDetailsPage";
+import AssignmentPage from "../pages/AssignmentPage";
+import AssignmentCreatePage from "../pages/AssignmentCreatePage";
+import AssignmentUpcomingPage from "../pages/AssignmentUpcomingPage";
+import AssignmentHistoryPage from "../pages/AssignmentHistoryPage";
 
 const TabsLayout = () => {
   const [showTab, setShowTab] = useState(true);
@@ -32,6 +40,7 @@ const TabsLayout = () => {
 
   const fetchUserType = async () => {
     const { value } = await Preferences.get({ key: "userType" })
+    console.log("value", value)
     if (value === "student") {
       setIsStudent(true)
     } else {
@@ -62,8 +71,17 @@ const TabsLayout = () => {
           <Route exact path="/tabs/project" component={ProjectPage} />
           <Route exact path="/tabs/project/details" component={ProjectDetailsPage} />
           <Route exact path="/tabs/profile" component={ProfilePage} />
+          <Route exact path="/tabs/profile/code-history" component={CodeHistoryPage} />
           <Route exact path="/tabs/playground" component={PlaygroundPage} />
           <Route exact path="/tabs/scratch-editor" component={ScratchWorkspace} />
+          <Route exact path="/tabs/classroom" component={ClassroomPage} />
+          <Route exact path="/tabs/classroom/create" component={ClassroomCreatePage} />
+          <Route exact path="/tabs/classroom/details" component={ClassroomDetailsPage} />
+          <Route exact path="/tabs/assignment" component={AssignmentPage} />
+          <Route exact path="/tabs/assignment/create" component={AssignmentCreatePage} />
+          <Route exact path="/tabs/assignment/upcoming" component={AssignmentUpcomingPage} />
+          <Route exact path="/tabs/assignment/history" component={AssignmentHistoryPage} />
+          {/* <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} /> */}
           {/* <Redirect exact from="/tabs" to="/tabs/home" /> */}
         </IonRouterOutlet>
 
@@ -83,7 +101,7 @@ const TabsLayout = () => {
                 <IonIcon icon={ProjectTab} />
                 <IonLabel>Project</IonLabel>
               </IonTabButton>
-              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname === "/tabs/profile" ? "active-tab" : ""}>
+              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
                 <IonIcon icon={ProfileTab} />
                 <IonLabel>Profile</IonLabel>
               </IonTabButton>
@@ -99,15 +117,15 @@ const TabsLayout = () => {
                 {/* <img src={Scanner}/> */}
                 <IonLabel>Playground</IonLabel>
               </IonTabButton>
-              <IonTabButton tab="history" href="/tabs/history" className={location.pathname === "/tabs/history" ? "active-tab" : ""}>
+              <IonTabButton tab="classroom" href="/tabs/classroom" className={location.pathname.startsWith("/tabs/classroom") ? "active-tab" : ""}>
                 <IonIcon icon={ClassroomTab} />
                 <IonLabel>Classroom</IonLabel>
               </IonTabButton>
-              <IonTabButton tab="project" href="/tabs/project" className={location.pathname.startsWith("/tabs/project") ? "active-tab" : ""}>
+              <IonTabButton tab="assignment" href="/tabs/assignment" className={location.pathname.startsWith("/tabs/assignment") ? "active-tab" : ""}>
                 <IonIcon icon={ProjectTab} />
                 <IonLabel>Assignments</IonLabel>
               </IonTabButton>
-              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname === "/tabs/profile" ? "active-tab" : ""}>
+              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
                 <IonIcon icon={ProfileTab} />
                 <IonLabel>Profile</IonLabel>
               </IonTabButton>

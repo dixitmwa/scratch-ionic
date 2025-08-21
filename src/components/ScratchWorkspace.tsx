@@ -219,6 +219,9 @@ export default function ScratchWorkspace() {
   };
 
   const handleSpriteClick = (spriteId: any) => {
+    if (selectedSpriteId) {
+      saveBlocksToVM(selectedSpriteId);
+    }
     setSelectedSpriteId(spriteId);
     vmRef.current?.setEditingTarget(spriteId);
     // handleProjectLoaded()
@@ -240,52 +243,73 @@ export default function ScratchWorkspace() {
   // }
 
   function uint8ArrayToBase64Storage(u8Arr: Uint8Array): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const blob = new Blob([u8Arr]);
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result as string; // e.g. "data:application/octet-stream;base64,..."
-      const base64 = dataUrl.split(',')[1]; // get only base64 part
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-}
+    return new Promise((resolve, reject) => {
+      const blob = new Blob([u8Arr]);
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result as string; // e.g. "data:application/octet-stream;base64,..."
+        const base64 = dataUrl.split(',')[1]; // get only base64 part
+        resolve(base64);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
 
+  function base64ToUint8Array(base64: string): Uint8Array {
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
+  }
 
   const handleUpload = async () => {
-    const { value } = await Preferences.get({ key: 'project' })
-    console.log("value->", value)
-    const projectUrl = value;
-    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
-    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/49b33c1f68664dc9b4af7dadbade5357";
-    // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3";
-    // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
-    if (!projectUrl) throw new Error("No file and no project URL in localStorage");
+    const { value: isBackFromPlayground } = await Preferences.get({ key: 'isBackFromPlayground' })
+    if (isBackFromPlayground == 'true') {
+      try {
+        await Preferences.set({ key: 'isBackFromPlayground', value: 'false' });
+        const { value: base64 } = await Preferences.get({ key: "buffer_base64" });
+        const buffer = base64ToUint8Array(base64);
+        setFileUploaded(true)
+        await loadProject(vmRef.current, buffer);
+        setUploadedProjectBuffer(buffer)
+      } catch (error) {
+        setFileUploaded(false)
+        console.error('Error loading project:', error);
+      }
+    } else {
+      const { value } = await Preferences.get({ key: 'project' })
+      console.log("value->", value);
+      // const projectUrl = value;
+      const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
+      if (!projectUrl) throw new Error("No file and no project URL in localStorage");
 
-    try {
-      const response = await fetch(projectUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/pdf',
-        },
-      });
-      console.log("response--->", response)
-      if (!response.ok) throw new Error("Failed to fetch project from URL");
+      try {
+        const response = await fetch(projectUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/pdf',
+          },
+        });
+        console.log("response--->", response)
+        if (!response.ok) throw new Error("Failed to fetch project from URL");
 
-      const arrayBuffer = await response.arrayBuffer();
-      const buffer = new Uint8Array(arrayBuffer);
-      const base64 = uint8ArrayToBase64(buffer);
-      // await Preferences.set({ key: "buffer_base64", value: base64 });
-      // const file = e.target.files[0];
-      // const buffer = new Uint8Array(await file.arrayBuffer());
-      setFileUploaded(true)
-      await loadProject(vmRef.current, buffer);
-      setUploadedProjectBuffer(buffer)
-    } catch (error) {
-      setFileUploaded(false)
-      console.error('Error loading project:', error);
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = new Uint8Array(arrayBuffer);
+        const base64 = uint8ArrayToBase64(buffer);
+        // await Preferences.set({ key: "buffer_base64", value: base64 });
+        // const file = e.target.files[0];
+        // const buffer = new Uint8Array(await file.arrayBuffer());
+        setFileUploaded(true)
+        await loadProject(vmRef.current, buffer);
+        setUploadedProjectBuffer(buffer)
+      } catch (error) {
+        setFileUploaded(false)
+        console.error('Error loading project:', error);
+      }
     }
   };
 
@@ -301,8 +325,6 @@ export default function ScratchWorkspace() {
     return btoa(binary);
   }
 
-
-  // Navigate to playground page after saving current project
   const navigateToPlaygorund = async () => {
     try {
       console.log("1---")
@@ -361,6 +383,21 @@ export default function ScratchWorkspace() {
     return `data:${mimeType};base64,${base64String}`;
   };
 
+  function saveBlocksToVM(spriteId) {
+    debugger
+    const ws = workspaceRef.current;
+    const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
+    if (!ws || !target) return;
+    try {
+      // Export workspace to XML
+      const xml = ScratchBlocks.Xml.workspaceToDom(ws);
+      // Update VM's block XML for the target
+      target.blocks.fromXML(ScratchBlocks.Xml.domToText(xml));
+    } catch (e) {
+      console.error('Error saving workspace blocks to VM', e);
+    }
+  }
+
   useIonViewDidEnter(() => {
     lockOrientation();
     handleUpload();
@@ -370,66 +407,66 @@ export default function ScratchWorkspace() {
 
   return (
     // <IonPage>
-      <div style={{
-        margin: "30px 10px 10px 10px",
-        height: "94vh",
-        overflowY: "scroll"
-      }}>
-        <CommonCard style={{ padding: "20px", maxWidth: "100%", minWidth: "340px" }}>
-          <div
-            ref={blockRef}
-            style={{
-              position: 'relative',
-              height: '70vh',
-              width: '100%',
-              overflow: 'auto',
-              display: 'flex',
-              flexDirection: 'column',
-              touchAction: 'none',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          />
-          <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "4px" }}>
-            <CustomButton icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
-            <CustomButton icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
-          </div>
-        </CommonCard>
+    <div style={{
+      margin: "30px 10px 10px 10px",
+      height: "94vh",
+      overflowY: "scroll"
+    }}>
+      <CommonCard style={{ padding: "20px", maxWidth: "100%", minWidth: "340px" }}>
+        <div
+          ref={blockRef}
+          style={{
+            position: 'relative',
+            height: '70vh',
+            width: '100%',
+            overflow: 'auto',
+            display: 'flex',
+            flexDirection: 'column',
+            touchAction: 'none',
+            WebkitOverflowScrolling: 'touch',
+          }}
+        />
+        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "4px" }}>
+          <CustomButton btnText='' icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          <CustomButton btnText='' icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+        </div>
+      </CommonCard>
 
-        {/* <div className="canvas-container">
+      {/* <div className="canvas-container">
         <canvas ref={canvasRef} className="playground-canvas" />
       </div> */}
 
-        {
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            justifyContent: 'center',
-            gap: 8,
-            marginTop: "8px"
-          }}>
-            {vmRef.current?.runtime?.targets
-              .filter(t => t.isSprite || t.isStage)
-              .map(sprite => {
-                const costume = sprite.getCurrentCostume();
-                const asset = costume?.asset;
-                const imageUrl = asset ? getImageFromAsset(asset) : null;
+      {
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          justifyContent: 'center',
+          gap: 8,
+          marginTop: "8px"
+        }}>
+          {vmRef.current?.runtime?.targets
+            .filter(t => t.isSprite || t.isStage)
+            .map(sprite => {
+              const costume = sprite.getCurrentCostume();
+              const asset = costume?.asset;
+              const imageUrl = asset ? getImageFromAsset(asset) : null;
 
-                return (
-                  <div onClick={() => handleSpriteClick(sprite.id)}>
-                    <CommonCard key={sprite.id} style={{ padding: 5 }} bottomText={sprite.getName()} border={sprite.id === selectedSpriteId ? true : false}>
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                        {imageUrl && (
-                          <img src={imageUrl} alt={sprite.getName()} style={{ width: 80, height: 80, objectFit: 'contain' }} />
-                        )}
-                      </div>
-                    </CommonCard>
-                  </div>
-                );
-              })}
+              return (
+                <div onClick={() => handleSpriteClick(sprite.id)}>
+                  <CommonCard key={sprite.id} style={{ padding: 5 }} bottomText={sprite.getName()} border={sprite.id === selectedSpriteId ? true : false}>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                      {imageUrl && (
+                        <img src={imageUrl} alt={sprite.getName()} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                      )}
+                    </div>
+                  </CommonCard>
+                </div>
+              );
+            })}
 
-          </div>
-        }
-      </div>
+        </div>
+      }
+    </div>
     // </IonPage>
   );
 }

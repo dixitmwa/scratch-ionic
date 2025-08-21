@@ -21,12 +21,12 @@ instance.interceptors.request.use(
 instance.interceptors.response.use((response) => {
     return response;
 }, async (error) => {
-    debugger
     if (error?.response?.status === 401) {
         await Preferences.clear();
         // history.push("/login")
     }
-    return error;
+    debugger
+    return error.response;
     // throw error;
 })
 
@@ -36,7 +36,6 @@ export const doFetch = (
     data?: any,
     config?: AxiosRequestConfig
 ) => {
-    debugger
     return instance({
         url: baseUrl + url,
         method,

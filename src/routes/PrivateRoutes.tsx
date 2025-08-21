@@ -51,6 +51,7 @@
 import React from "react";
 import { Route, Redirect } from "react-router-dom";
 import { Preferences } from "@capacitor/preferences";
+import { useAuth } from "../service/AuthService/AuthContext";
 
 interface PrivateRouteProps {
   component: React.ComponentType<any>;
@@ -68,6 +69,7 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, ...re
     };
     checkAuth();
   }, []);
+  // const { isAuthenticated } = useAuth();
 
   return (
     <Route

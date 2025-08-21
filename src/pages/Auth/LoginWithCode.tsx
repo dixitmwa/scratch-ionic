@@ -29,24 +29,37 @@ const LoginWithCode = () => {
         loadUserType();
     });
 
-    const handleSentOtp = () => {
-        setOtpSent(true)
+    const handleSentOtp = async () => {
+        const reqObj = {
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
+        }
+        const response: any = await Auth.sentOtpService(reqObj)
+        debugger
+        console.log(response)
+        if (response?.status != 200) {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+        } else {
+            setOtpSent(true)
+        }
     }
 
     const handleLogin = async () => {
-        const response: any = await Auth.loginWithCodeService({ classCode: code })
+        const response: any = await Auth.verifyOtpService({
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
+            otp: code
+        })
+        debugger
         console.log(response)
         debugger
         if (response?.status === 200) {
-            await Preferences.set({ key: 'auth', value: response.data.token })
-            await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email }) })
-            // document.activeElement instanceof HTMLElement && document.activeElement.blur();
+            await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email,countryCode:prefix }) })
             history.push("/complete-profile")
-        } else if (response?.status === 404) {
-            await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email }) })
-            history.push("/complete-profile")
+        } else {
+            // await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email }) })
+            // history.push("/complete-profile")
             setShowError(true)
-            setErrorMessage(response?.response?.data?.message)
+            setErrorMessage(response?.data?.message)
         }
     }
 

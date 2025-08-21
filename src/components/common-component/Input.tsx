@@ -73,6 +73,7 @@ import { IonIcon } from "@ionic/react";
 import { useState } from "react";
 import HideEye from "../../assets/hide_eye.svg"
 import ViewEye from "../../assets/view.svg"
+import Clipboard from "../../assets/clipboard.svg"
 
 const countryCodes = [
     { name: "India", code: "+91" },
@@ -94,7 +95,9 @@ const CommonInput = ({
     prefix = "",
     showCountryCode = false,
     onCountryCodeChange = (e: any) => { },
-    placeholder = ""
+    placeholder = "",
+    textarea = false,
+    copyInput = false
 }) => {
     const [selectedCode, setSelectedCode] = useState("+91");
     const [showPassword, setShowPassword] = useState(false);
@@ -103,6 +106,10 @@ const CommonInput = ({
         setSelectedCode(e.target.value);
         onCountryCodeChange(e.target.value);
     };
+
+    const handleCopy = () => {
+
+    }
 
     const isPasswordType = type === "password";
 
@@ -160,7 +167,49 @@ const CommonInput = ({
                     </select>
                 )}
 
-                <input
+                {
+                    textarea ? (
+                        <textarea
+                            value={value}
+                            onChange={onChange}
+                            style={{
+                                flex: 1,
+                                border: "2px solid #607E9C",
+                                borderRadius: "20px",
+                                padding: "16px",
+                                paddingLeft: prefix && !showCountryCode ? "60px" : "16px",
+                                fontSize: "20px",
+                                color: "#607E9C",
+                                width: "100%",
+                                background: "transparent",
+                                paddingRight: isPasswordType ? "50px" : "16px"
+                            }}
+                            placeholder={placeholder}
+                            rows={7}
+                        />
+                    ) : (
+                        <input
+                            type={isPasswordType && showPassword ? "text" : type}
+                            value={value}
+                            onChange={onChange}
+                            style={{
+                                flex: 1,
+                                border: "2px solid #607E9C",
+                                borderRadius: "50px",
+                                padding: "16px",
+                                paddingLeft: prefix && !showCountryCode ? "60px" : "16px",
+                                fontSize: "20px",
+                                color: "#607E9C",
+                                width: "100%",
+                                background: "transparent",
+                                paddingRight: isPasswordType ? "50px" : "16px"
+                            }}
+                            placeholder={placeholder}
+                        />
+                    )
+                }
+
+                {/* <input
                     type={isPasswordType && showPassword ? "text" : type}
                     value={value}
                     onChange={onChange}
@@ -177,7 +226,7 @@ const CommonInput = ({
                         paddingRight: isPasswordType ? "50px" : "16px" // space for eye icon
                     }}
                     placeholder={placeholder}
-                />
+                /> */}
 
                 {prefix && !showCountryCode && (
                     <span style={{
@@ -207,7 +256,23 @@ const CommonInput = ({
                             userSelect: "none"
                         }}
                     >
-                        {showPassword ? <IonIcon icon={HideEye} style={{fontSize: "32px"}}/> : <IonIcon icon={ViewEye} style={{fontSize: "32px"}} />}
+                        {showPassword ? <IonIcon icon={HideEye} style={{ fontSize: "32px" }} /> : <IonIcon icon={ViewEye} style={{ fontSize: "32px" }} />}
+                    </span>
+                )}
+                {copyInput && (
+                    <span
+                        title="Copy"
+                        onClick={handleCopy}
+                        style={{
+                            position: "absolute",
+                            right: "20px",
+                            color: "#607E9C",
+                            cursor: "pointer",
+                            userSelect: "none",
+                            fontSize: "22px"
+                        }}
+                    >
+                        <IonIcon icon={Clipboard} />
                     </span>
                 )}
             </div>

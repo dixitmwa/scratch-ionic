@@ -48,38 +48,42 @@ import PublicRoute from './routes/PublicRoutes';
 import CompleteProfile from './pages/Auth/CompleteProfile';
 import AcceptCode from './pages/Auth/AcceptCode';
 import ForgotPassword from './pages/Auth/ForgotPassword';
+import { AuthProvider } from './service/AuthService/AuthContext';
 window.Buffer = Buffer;
 
 setupIonicReact();
 
 const App: React.FC = () => (
   <ScratchProvider>
-    <IonApp>
-      <IonReactRouter>
-        <IonRouterOutlet>
-          <PublicRoute exact path="/" component={LoginPreference} />
-          <PublicRoute exact path="/login" component={LoginPreference} />
-          <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
-          <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
-          <PublicRoute exact path="/sign-up" component={LoginWithCode} />
-          <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
-          <PublicRoute exact path="/accept-code" component={AcceptCode} />
-          <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
+    <AuthProvider>
+      <IonApp>
+        <IonReactRouter>
+          <IonRouterOutlet>
+            <PublicRoute exact path="/" component={LoginPreference} />
+            <PublicRoute exact path="/login" component={LoginPreference} />
+            <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
+            <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
+            <PublicRoute exact path="/sign-up" component={LoginWithCode} />
+            <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
+            <PublicRoute exact path="/accept-code" component={AcceptCode} />
+            <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
 
-          <Route exact path="/scratch-editor" render={() => (
-            <MainLayout>
-              <ScratchWorkspace />
-            </MainLayout>
-          )} />
+            <Route exact path="/scratch-editor" render={() => (
+              <MainLayout>
+                <ScratchWorkspace />
+              </MainLayout>
+            )} />
 
-          <PrivateRoute path="/tabs" component={TabsLayout} />
+            <PrivateRoute path="/tabs" component={TabsLayout} />
 
-          {/* <Route path="/tabs" component={TabsLayout} /> */}
-          <Route render={() => <Redirect to="/" />} />
-        </IonRouterOutlet>
-      </IonReactRouter>
-    </IonApp>
+            {/* <Route path="/tabs" component={TabsLayout} /> */}
+            <Route render={() => <Redirect to="/" />} />
+          </IonRouterOutlet>
+        </IonReactRouter>
+      </IonApp>
+    </AuthProvider>
   </ScratchProvider>
+  
 );
 
 export default App;

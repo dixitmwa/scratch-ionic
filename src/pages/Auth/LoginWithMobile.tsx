@@ -7,6 +7,7 @@ import { Link } from "react-router-dom"
 import { Preferences } from "@capacitor/preferences"
 import { IonIcon, IonPage, IonToast, useIonViewDidLeave, useIonViewWillEnter } from "@ionic/react"
 import Back from "../../assets/double_arrow_left_button.svg"
+import AuthService from "../../service/AuthService/AuthService"
 
 const LoginWithMobile = () => {
     const history = useHistory();
@@ -43,12 +44,21 @@ const LoginWithMobile = () => {
         setMessageDetails("Login Successfully")
         setShowMessage(true)
         const reqObj = {
-            emailOrPhone: isMobile ? mobileNumber : email,
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
             password: password
         }
         console.log(reqObj)
-        await Preferences.set({ key: 'auth', value: "loremtokengeneratedbyautomanual" })
-        history.push("/tabs/editor")
+        const response: any = await AuthService.loginWithCodeService(reqObj)
+        console.log(response)
+        debugger
+        if (response?.status != 200) {
+            setShowMessage(true)
+            setMessageDetails(response?.data?.message)
+        } else {
+            await Preferences.set({ key: 'auth', value: response?.data?.data?.token })
+            await Preferences.set({ key: 'userType', value: response?.data?.data?.role })
+            history.push("/tabs/editor")
+        }
     }
 
     useIonViewDidLeave(() => {

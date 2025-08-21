@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const CustomDropdown = ({ options = [], value = "", onChange, textHeader }: any) => {
+const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeholder }: any) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -45,7 +45,7 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader }: any)
           background: "transparent"
         }}
       >
-        {value || `Select`}
+        {value || placeholder}
       </div>
       <select
         value={value}

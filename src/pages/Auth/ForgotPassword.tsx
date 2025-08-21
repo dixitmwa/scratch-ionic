@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomButton from "../../components/common-component/Button";
 import CommonCard from "../../components/common-component/Card";
 import CommonInput from "../../components/common-component/Input";
 import { useHistory } from "react-router"
 import Back from "../../assets/double_arrow_left_button.svg"
-import { IonIcon, useIonViewWillEnter } from "@ionic/react"
+import { IonIcon, IonToast, useIonViewWillEnter } from "@ionic/react"
 import { Preferences } from "@capacitor/preferences";
+import AuthService from "../../service/AuthService/AuthService";
 
 const ForgotPassword = () => {
     const history = useHistory()
@@ -21,6 +22,8 @@ const ForgotPassword = () => {
         confirmPassword: ""
     })
     const [userType, setUserType] = useState("")
+    const [showError, setShowError] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
@@ -31,27 +34,66 @@ const ForgotPassword = () => {
         loadUserType();
     });
 
-    const handleSentOtp = () => {
-        setOtpSent(true)
+    const fetchInitPage = async () => {
+        await Preferences.set({ key: "initPage", value: "accept-code" })
     }
 
-    const verifyOtp = () => {
-        const reqObj = {
-            emailOrPhone: isMobile ? mobileNumber : email,
-            otp: code
+    useEffect(()=>{
+        fetchInitPage()
+    },[])
+
+    const handleSentOtp = async () => {
+        const response = await AuthService.sentOtpService({
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
+        })
+        if (response?.status != 200) {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+        } else {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+            setOtpSent(true)
         }
-        console.log(isMobile ? mobileNumber : email, reqObj)
-        setOtpVerified(true)
+    }
+
+    const verifyOtp = async () => {
+        const response: any = await AuthService.verifyOtpService({
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
+            otp: code
+        })
+        console.log(isMobile ? mobileNumber : email, response)
+        if (response?.status === 200) {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+            setOtpVerified(true)
+        } else {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+        }
         // console.log("OTP", otp)
         // history.push("/tabs/editor")
     }
 
-    const handlePasswordChanged = () => {
+    const handlePasswordChanged = async () => {
         const reqObj = {
             password: password.password,
             emailOrPhone: mobileNumber || email
         }
-        console.log(password, reqObj)
+        const response = await AuthService.forgotPasswordService({
+            [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
+            newPassword: password.password
+        })
+        if (response?.status === 200) {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+            setOtpSent(false)
+            setOtpVerified(false)
+            history.push("/")
+        } else {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+        }
+        // console.log(password, reqObj)
     }
 
     return (
@@ -145,6 +187,7 @@ const ForgotPassword = () => {
                     }
                 </div>
             </div>
+            <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
         </>
     )
 }

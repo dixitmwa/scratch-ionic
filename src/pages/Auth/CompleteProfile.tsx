@@ -5,8 +5,9 @@ import CustomButton from "../../components/common-component/Button";
 import CustomDropdown from "../../components/common-component/DropDown";
 import { useHistory } from "react-router";
 import Back from "../../assets/double_arrow_left_button.svg"
-import { IonIcon, useIonViewWillEnter } from "@ionic/react";
+import { IonIcon, IonToast, useIonViewWillEnter } from "@ionic/react";
 import { Preferences } from "@capacitor/preferences";
+import AuthService from "../../service/AuthService/AuthService";
 
 const CompleteProfile = () => {
     const history = useHistory()
@@ -22,11 +23,39 @@ const CompleteProfile = () => {
         confirmPassword: ""
     })
     const [userType, setUserType] = useState("")
+    const [showError, setShowError] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
         setUserType(value || "student");
     };
+
+    const handleUpdateProfile = async () => {
+        const { value } = await Preferences.get({ key: "credential" })
+        const { value: userType } = await Preferences.get({ key: "userType" })
+        const credentialValue = JSON.parse(value || "")
+        const response = await AuthService.registerService({
+            name: profileData.name,
+            schoolName: profileData.school,
+            className: profileData.className,
+            sectionName: profileData.section,
+            role: userType,
+            ...credentialValue,
+            password: password.password
+        })
+        debugger
+        console.log(response)
+        if (response?.status === 200) {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+            await Preferences.set({ key: "initPage", value: "accept-code" })
+            history.push("/accept-code")
+        } else {
+            setShowError(true)
+            setErrorMessage(response?.data?.message)
+        }
+    }
 
     useIonViewWillEnter(() => {
         loadUserType();
@@ -79,7 +108,7 @@ const CompleteProfile = () => {
                                                 "The Scindia School, Gwalior",
                                                 "Mayo College, Ajmer",
                                                 "Woodstock School, Mussoorie",
-                                                "The Lawrence School, Sanawar",
+                                                "The Lawrene School, Sanawar",
                                                 "Dhirubhai Ambani International School, Mumbai",
                                                 "Welham Girls' School, Dehradun"
                                             ]} />
@@ -133,13 +162,14 @@ const CompleteProfile = () => {
                                     placeholder="Enter Confirm New Password"
                                     onChange={(e) => { setPassword({ ...password, confirmPassword: e.target.value }) }} />
                                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "10px" }}>
-                                    <CustomButton btnText="Submit" background="#D929FF" onClick={() => { history.push("/accept-code") }} style={{ width: "auto" }} disable={(!password.password || !password.confirmPassword) || password.confirmPassword !== password.password} />
+                                    <CustomButton btnText="Submit" background="#D929FF" onClick={() => { handleUpdateProfile() }} style={{ width: "auto" }} disable={(!password.password || !password.confirmPassword) || password.confirmPassword !== password.password} />
                                 </div>
                             </CommonCard>
                         )
                     }
                 </div>
             </div>
+            <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
         </>
     )
 }

@@ -18,7 +18,14 @@ const CustomButton = ({
             disabled={disable}
             {...props}
         >
-            {icon ? icon : btnText}
+            {
+                icon && (
+                    <span style={{ ...btnText ? { marginRight: "10px" } : {}, padding: 0 }}>
+                        {icon}
+                    </span>
+                )
+            }
+            {btnText}
         </button >
     )
 }

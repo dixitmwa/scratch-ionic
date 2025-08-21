@@ -21,3 +21,28 @@ ion-modal#common-popup ion-icon {
 /* ion-modal#common-popup .wrapper {
     margin-bottom: 10px;
   } */
+
+
+/* global.scss */
+ion-modal#custom-dialog {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+ion-modal#custom-dialog::part(content) {
+  --height: auto;
+  --width: auto;
+  --max-height: 80vh;
+  --max-width: 90vw;
+  --border-radius: 20px;
+  background: white;
+}
+
+ion-modal#custom-dialog ion-icon {
+  margin-right: 6px;
+  width: 48px;
+  height: 48px;
+  padding: 4px 0;
+  color: #aaaaaa;
+}

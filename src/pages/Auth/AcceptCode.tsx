@@ -11,10 +11,13 @@ const AcceptCode = () => {
     const history = useHistory()
     const [codeId, setCodeId] = useState("")
     const [userType, setUserType] = useState("")
+    const [initPage, setInitPage] = useState("")
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
+        const { value: initPage } = await Preferences.get({ key: "initPage" });
         setUserType(value || "student");
+        setInitPage(initPage || "")
     };
 
     useIonViewWillEnter(() => {
@@ -34,7 +37,7 @@ const AcceptCode = () => {
                 display: "flex",
                 justifyContent: "space-around"
             }}>
-                <IonIcon icon={Back} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/complete-profile") }} />
+                <IonIcon icon={Back} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push(initPage !== "accept-code" ? "/complete-profile" : "/accept-code") }} />
                 <p
                     style={{
                         fontSize: "24px",

@@ -60,7 +60,7 @@ const PlaygroundPage = () => {
         // console.log("projectBuffer", new Uint8Array(projectBuffer));
 
         const { value: base64 } = await Preferences.get({ key: "buffer_base64" });
-
+debugger
         if (base64) {
             buffer = base64ToUint8Array(base64);
             console.log("Retrieved buffer:", buffer);
@@ -107,7 +107,8 @@ const PlaygroundPage = () => {
         }
     };
 
-    const handleBack = () => {
+    const handleBack = async () => {
+        await Preferences.set({ key: 'isBackFromPlayground', value: 'true' });
         history.push('/tabs/scratch-editor');
     };
 
@@ -291,14 +292,14 @@ const PlaygroundPage = () => {
             <div className="playground-wrapper">
                 {/* Left Control Buttons */}
                 <div className="left" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <CustomButton icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton btnText='' icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton btnText='' icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: true })
                     } onRelease={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: false })
                     } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    <CustomButton btnText='' icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: true })
                     } onRelease={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: false })
@@ -312,18 +313,18 @@ const PlaygroundPage = () => {
 
                 {/* Right Control Buttons */}
                 <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <CustomButton icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={stopGame} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
+                    <CustomButton btnText='' icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={stopGame} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton btnText='' icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })
                     } onRelease={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })
                     } background="#FFFFFF" txtColor="#FF8429" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={LeftArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    <CustomButton btnText='' icon={<IonIcon icon={LeftArrow} style={{ fontSize: '32px' }} />} onClick={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: true })
                     } onRelease={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })
                     } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton icon={<IonIcon icon={RightArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    <CustomButton btnText='' icon={<IonIcon icon={RightArrow} style={{ fontSize: '32px' }} />} onClick={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: true })
                     } onRelease={() =>
                         vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })

@@ -1,4 +1,4 @@
-import { IonIcon, IonModal, IonPage, useIonViewDidEnter, useIonViewDidLeave } from "@ionic/react";
+import { IonIcon, IonModal, IonPage, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from "@ionic/react";
 import ChipCard from "../components/common-component/ChipCard";
 import { arrowForwardOutline, volumeLowOutline, exitOutline, helpOutline, bookOutline, documentTextOutline, logOutOutline } from "ionicons/icons";
 import { profileConstant } from "../constant/Constant";
@@ -22,6 +22,7 @@ import CommonCard from "../components/common-component/Card";
 import { useHistory } from "react-router";
 import CustomDropdown from "../components/common-component/DropDown";
 import CommonInput from "../components/common-component/Input";
+import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
 
 const people = [
     { id: 1, name: "John Wordan" },
@@ -42,11 +43,15 @@ const people = [
 
 const ProfilePage = () => {
     const history = useHistory()
+    const router = useIonRouter();
     const modal = useRef<HTMLIonModalElement>(null);
+    const [studentList, setStudentList] = useState([])
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isClassModalOpen, setIsClassModalOpen] = useState(false);
     const [constantData, setConstantData] = useState(profileConstant);
     const [selectedData, setSelectedData] = useState<any>(null);
     const logoutModalRef = useRef<HTMLIonModalElement>(null);
+    const classModalRef = useRef<HTMLIonModalElement>(null);
     const [isStudent, setIsStudent] = useState(true)
     const [newCodeGenerate, setNewCodeGenerate] = useState(false);
     const [selectedClass, setSelectedClass] = useState(true);
@@ -55,19 +60,47 @@ const ProfilePage = () => {
         division: "",
         classname: ""
     })
+    const [loadingLogOut, setLoadingLogOut] = useState(false)
     const [selected, setSelected] = useState<number[]>([]);
     const [showGeneratedCode, setShowGeneratedCode] = useState(false)
+    const [classDivisionData, setClassDivisionData] = useState([]);
+    const [generatedCode, setGeneratedCode] = useState("")
+    const [classesDetails, setClassesDetails] = useState({
+        class: '',
+        division: ''
+    });
+    const classOptions = classDivisionData.map(item => ({
+        label: item.classNumber,
+        value: item.classId
+    }));
 
+    console.log(classDetails, classesDetails)
+    // const divisionOptionsRaw = classDivisionData.find(
+    //     item => item.className === classDetails.class
+    // )?.sections || [];
+
+    // const divisionOptions = divisionOptionsRaw.map(section => section.sectionName);
+
+    const divisionOptionsRaw = classDivisionData.find(
+        item => item.classId === classDetails.class
+    )?.sections || [];
+
+
+    const divisionOptions = divisionOptionsRaw.map(section => ({
+        label: section.sectionName,
+        value: section.sectionId
+    }));
+
+    // const uniqueDivisions = [
+    //     ...new Set(divisionOptions.map(section => section.sectionName))
+    // ];
     const toggleSelect = (id: number) => {
         setSelected((prev) =>
             prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
         );
     };
-
     const handleSubPages = (pageName: string) => {
-        debugger
         const data = constantData.find((item) => item.route === pageName)
-        console.log(pageName, data)
         if (data) {
             setSelectedData(data)
         }
@@ -77,30 +110,72 @@ const ProfilePage = () => {
         logoutModalRef.current?.dismiss();
     }
 
+    const handleCloseClassModal = () => {
+        classModalRef.current?.dismiss();
+    }
+
     const handleLogOut = async () => {
+        setLoadingLogOut(true)
         // await logout();
         await Preferences.clear();
-        logoutModalRef.current?.dismiss();
-        history.push('/login')
+        setTimeout(() => {
+            logoutModalRef.current?.dismiss();
+            history.push('/login')
+            // router.push("/login", "forward");
+        }, 1500)
     }
 
     const handleBack = () => {
+        setNewCodeGenerate(false)
         setSelectedData(null)
     }
 
     const fetchUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" })
-        console.log("value------", value)
         if (value === "student") {
             setIsStudent(true)
         } else {
             setIsStudent(false)
         }
+
+        const response = await CodeLinkService.fetchClassAndDivisionService()
+        console.log("response", response)
+        if (response?.status === 200) {
+            setClassDivisionData(response?.data?.data)
+        }
     }
 
-    const generateCode = () => {
-        setShowGeneratedCode(true)
-        console.log("Code updating")
+    const generateCode = async () => {
+        const reqObj = selectedClass ? {
+            type: "Class",
+            classId: classDetails.class,
+            sectionId: classDetails.division
+        } : {
+            type: "Student",
+            classId: classDetails.class,
+            sectionId: classDetails.division,
+            classname: classDetails.classname,
+            userId: selected
+        };
+        const response = await CodeLinkService.generateCodeService(reqObj);
+        console.log("Code updating", response);
+        if (response?.status === 200) {
+            setGeneratedCode(response?.data?.data?.code || "")
+            setShowGeneratedCode(true);
+        }
+        console.log("Code updating");
+    }
+
+    const fetchStudentByDivision = async () => {
+        debugger
+        if (classDetails.class && classDetails.division) {
+            const response = await CodeLinkService.fetchStudentsByDivisionService({ classId: classDetails.class, sectionId: classDetails.division })
+            if (response?.status === 200) {
+                debugger
+                setStudentList(response?.data?.data)
+                console.log("response", response)
+            }
+        }
     }
 
     useIonViewDidEnter(() => {
@@ -111,7 +186,11 @@ const ProfilePage = () => {
         fetchUserType()
     }, [])
 
-    console.log("isOpen", isModalOpen)
+    useEffect(() => {
+        if (!selectedClass) {
+            fetchStudentByDivision()
+        }
+    }, [selectedClass, classDetails.class, classDetails.division])
 
     return (
         // <IonPage>
@@ -147,28 +226,35 @@ const ProfilePage = () => {
                                                     <div style={{ display: "flex", gap: "10px", margin: "10px 0px" }}>
                                                         <CustomDropdown
                                                             placeholder="Class"
-                                                            value={classDetails.class}
-                                                            onChange={(val: any) => setClassDetails({ ...classDetails, class: val })}
-                                                            options={[
-                                                                "5th",
-                                                                "6th",
-                                                                "7th",
-                                                                "8th",
-                                                                "9th",
-                                                                "10th",
-                                                                "11th",
-                                                                "12th"
-                                                            ]} />
+                                                            value={classesDetails.class}
+                                                            onChange={(val: any) => {
+                                                                const selectedClassObj = classDivisionData.find(item => item.classId === val.value);
+                                                                debugger
+                                                                setClassesDetails({
+                                                                    class: val.label,
+                                                                    division: ''
+                                                                });
+                                                                setClassDetails({
+                                                                    ...classDetails,
+                                                                    class: selectedClassObj?.classId || '',
+                                                                    division: ''
+                                                                });
+                                                            }}
+                                                            options={classOptions} />
                                                         <CustomDropdown
                                                             placeholder="Division"
-                                                            value={classDetails.division}
-                                                            onChange={(val: any) => setClassDetails({ ...classDetails, division: val })}
-                                                            options={[
-                                                                "A",
-                                                                "B",
-                                                                "C",
-                                                                "D"
-                                                            ]} />
+                                                            value={classesDetails.division}
+                                                            onChange={(val: any) => {
+                                                                debugger
+                                                                const selectedClassId = classDivisionData.find(c => c.classId === classesDetails.class)?.classNumber;
+                                                                const selectedSectionId = divisionOptionsRaw.find(d => d.sectionId === val.value)?.sectionId;
+                                                                setClassesDetails({ ...classesDetails, division: val.label });
+                                                                setClassDetails({
+                                                                    ...classDetails,
+                                                                    division: selectedSectionId || ''
+                                                                });
+                                                            }}
+                                                            options={divisionOptions} />
                                                     </div>
                                                     {
                                                         !selectedClass && (
@@ -176,28 +262,28 @@ const ProfilePage = () => {
                                                                 <CommonInput
                                                                     textHeader="Class name"
                                                                     type="text"
-                                                                    value={classDetails.class}
+                                                                    value={classDetails.classname}
                                                                     placeholder="Enter name"
                                                                     onChange={(e) => { setClassDetails({ ...classDetails, classname: e.target.value }) }} />
                                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                                                     <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginBottom: "0px" }}>Add students</p>
                                                                     <p style={{ color: "#607E9C", fontSize: "16px", fontWeight: "bold", marginBottom: "0px" }}>{selected.length} students</p>
                                                                 </div>
-                                                                <CustomButton background="#607E9C" icon={<IonIcon icon={Plus} />} btnText="Add" onClick={() => { setIsModalOpen(true) }} style={{ marginTop: "10px" }} />
+                                                                <CustomButton background="#607E9C" icon={<IonIcon icon={Plus} />} btnText="Add" onClick={() => { setIsClassModalOpen(true) }} style={{ marginTop: "10px" }} />
                                                             </>
                                                         )
                                                     }
                                                     {
                                                         showGeneratedCode && (
                                                             <div>
-                                                                <CommonInput textHeader="Code Link" copyInput={true} value={"Sdeggj"} />
-                                                                <CommonInput textHeader="Product ID" copyInput={true} value={"Sdeggj"} />
+                                                                <CommonInput textHeader="Code Link" copyInput={true} value={generatedCode} />
+                                                                <CommonInput textHeader="Product ID" copyInput={true} value={generatedCode} />
                                                             </div>
                                                         )
                                                     }
                                                 </div>
                                                 <div>
-                                                    <CustomButton btnText="Generate code" background={"#FF8429"} txtColor={"white"} style={{ fontSize: "20px", marginTop: "10px", marginBottom: "10px" }} onClick={() => generateCode()} />
+                                                    <CustomButton btnText="Generate code" background={"#FF8429"} txtColor={"white"} style={{ fontSize: "20px", marginTop: "10px", marginBottom: "10px" }} disable={!classDetails.class || !classDetails.division || (selectedClass ? false : (!classDetails.classname || selected.length === 0))} onClick={() => generateCode()} />
                                                 </div>
                                             </div>
                                         ) : (
@@ -236,9 +322,19 @@ const ProfilePage = () => {
                 )
             }
             <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={logoutModalRef}>
+                <CommonCard headerText="Logout">
+                    <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginBottom: "20px", marginTop: "0px" }}>Are you sure you want to logout?</p>
+                    <div style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
+                        <CustomButton disable={loadingLogOut} btnText="Cancel" background={"#29B0FF"} txtColor={"white"} style={{ fontSize: "24px" }} onClick={() => handleCloseModal()} />
+                        <CustomButton isLoading={loadingLogOut} btnText="Logout" background={"#FF0000"} txtColor={"white"} style={{ fontSize: "24px" }} onClick={() => handleLogOut()} />
+                    </div>
+                </CommonCard>
+            </CommonPopup>
+
+            <CommonPopup isOpen={isClassModalOpen} setIsOpen={setIsClassModalOpen} modalRef={classModalRef}>
                 <CommonCard headerText="Select students">
                     <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
-                        {people?.map((person) => {
+                        {studentList?.map((person) => {
                             const isSelected = selected.includes(person.id);
                             return (
                                 <div
@@ -265,7 +361,7 @@ const ProfilePage = () => {
                     </div>
                     <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "10px" }}>
                         {/* <CustomButton btnText="Close" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} /> */}
-                        <CustomButton btnText="Save" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} />
+                        <CustomButton btnText="Save" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseClassModal() }} />
                     </div>
                 </CommonCard>
             </CommonPopup>

@@ -28,8 +28,8 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, ...rest
     //     // }
     // };
 
-    useEffect(() => {
-        const checkAuth = async () => {
+    const checkAuth = async () => {
+        // setTimeout(async () => {
             document.activeElement instanceof HTMLElement && document.activeElement.blur();
             console.log("Checking authentication status...");
 
@@ -43,21 +43,25 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, ...rest
                 setRedirectToInitPage(true);
             }
             // await Preferences.clear()
-        };
+        // }, 0);
+    };
 
-        checkAuth();
-    }, []);
+
+    // useEffect(() => {
+
+    //     checkAuth();
+    // }, []);
 
     useEffect(() => {
         if (redirectToInitPage) {
             history.replace("/accept-code");
         }
-    }, [redirectToInitPage, history]);
+        checkAuth();
+    }, [redirectToInitPage, location.pathname]);
 
-
-    // useIonViewDidEnter(() => {
-    //     checkAuth();
-    // });
+    useIonViewDidEnter(() => {
+        checkAuth();
+    });
 
     if (isAuthenticated === null) {
         return null;

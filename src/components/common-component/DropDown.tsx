@@ -4,10 +4,14 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeh
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleSelect = (option: any) => {
+  // const handleSelect = (option: any) => {
+  //   onChange(option);
+  // };
+  
+  const handleSelect = (value: any, option: { label: string; value: any }) => {
     onChange(option);
     setIsOpen(false);
-  };
+  };  
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -54,9 +58,9 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeh
           display: "none"
         }}
       >
-        {options.map((opt: string, i: number) => (
-          <option key={i} value={opt}>
-            {opt}
+        {options.map((opt: { value: string; label: string; }, i: number) => (
+          <option key={i} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>
@@ -82,26 +86,26 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeh
             zIndex: 2
           }}
         >
-          {options.map((opt: string, i: number) => (
+          {options.map((opt: { label: string; value: any }, i: number) => (
             <li
               key={i}
-              onClick={() => handleSelect(opt)}
+              onClick={() => handleSelect(opt.value, opt)}
               style={{
                 padding: "10px 14px",
                 cursor: "pointer",
                 fontSize: "16px",
                 color: "#456078",
-                background: value === opt ? "#e4ebf3" : "transparent"
+                background: value === opt.value ? "#e4ebf3" : "transparent"
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background = "#e4ebf3")
               }
               onMouseLeave={(e) =>
               (e.currentTarget.style.background =
-                value === opt ? "#e4ebf3" : "transparent")
+                value === opt.value ? "#e4ebf3" : "transparent")
               }
             >
-              {opt}
+              {opt.label}
             </li>
           ))}
         </ul>

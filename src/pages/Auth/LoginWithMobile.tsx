@@ -5,12 +5,13 @@ import CommonInput from "../../components/common-component/Input"
 import { useHistory } from "react-router"
 import { Link } from "react-router-dom"
 import { Preferences } from "@capacitor/preferences"
-import { IonIcon, IonPage, IonToast, useIonViewDidLeave, useIonViewWillEnter } from "@ionic/react"
+import { IonIcon, IonPage, IonToast, useIonRouter, useIonViewDidLeave, useIonViewWillEnter } from "@ionic/react"
 import Back from "../../assets/double_arrow_left_button.svg"
 import AuthService from "../../service/AuthService/AuthService"
 
 const LoginWithMobile = () => {
     const history = useHistory();
+    const router = useIonRouter()
     const [mobileNumber, setMobileNumber] = useState("");
     const [prefix, setPrefix] = useState("+91")
     const [isMobile, setIsMobile] = useState(true)
@@ -19,6 +20,7 @@ const LoginWithMobile = () => {
     const [showMessage, setShowMessage] = useState(false)
     const [messageDetails, setMessageDetails] = useState("")
     const [userType, setUserType] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
@@ -28,6 +30,8 @@ const LoginWithMobile = () => {
     useIonViewWillEnter(() => {
         loadUserType();
     });
+
+    console.log("-------inside------")
 
     const sentOtp = () => {
         console.log("Send OTP", mobileNumber)
@@ -40,9 +44,7 @@ const LoginWithMobile = () => {
     }
 
     const verifyOtp = async () => {
-        // console.log("OTP", otp);
-        setMessageDetails("Login Successfully")
-        setShowMessage(true)
+        setIsLoading(true)
         const reqObj = {
             [isMobile ? 'mobileNumber' : 'email']: isMobile ? prefix + mobileNumber : email,
             password: password
@@ -57,8 +59,12 @@ const LoginWithMobile = () => {
         } else {
             await Preferences.set({ key: 'auth', value: response?.data?.data?.token })
             await Preferences.set({ key: 'userType', value: response?.data?.data?.role })
-            history.push("/tabs/editor")
+            setTimeout(() => {
+                // router.push("/login-method", "forward");
+                history.push("/tabs/editor")
+            }, 0)
         }
+        setIsLoading(false)
     }
 
     useIonViewDidLeave(() => {
@@ -127,7 +133,7 @@ const LoginWithMobile = () => {
                                 <Link to={"/forgot-password"} style={{ textDecoration: "none", color: "#1275AF" }}>Forgot Password?</Link>
                             </div>
                             <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "10px" }}>
-                                <CustomButton btnText="Login" style={{ width: "auto" }} disable={isMobile ? (!/^[6-9]\d{9}$/.test(mobileNumber) || password.length < 8) : (!RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email) || !password)} background="#D929FF" txtColor="white" onClick={() => verifyOtp()} />
+                                <CustomButton btnText="Login" isLoading={isLoading} style={{ width: "auto" }} disable={isMobile ? (!/^[6-9]\d{9}$/.test(mobileNumber) || password.length < 8) : (!RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(email) || !password)} background="#D929FF" txtColor="white" onClick={() => verifyOtp()} />
                             </div>
                         </CommonCard>
                     </div>

@@ -1,4 +1,4 @@
-import { Redirect, Route, BrowserRouter as Router } from 'react-router-dom';
+import { Redirect, Route, BrowserRouter as Router, useLocation } from 'react-router-dom';
 import {
   IonApp,
   IonRouterOutlet,
@@ -49,41 +49,56 @@ import CompleteProfile from './pages/Auth/CompleteProfile';
 import AcceptCode from './pages/Auth/AcceptCode';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import { AuthProvider } from './service/AuthService/AuthContext';
+import { useEffect } from 'react';
+import { Preferences } from '@capacitor/preferences';
 window.Buffer = Buffer;
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <ScratchProvider>
-    <AuthProvider>
-      <IonApp>
-        <IonReactRouter>
-          <IonRouterOutlet>
-            <PublicRoute exact path="/" component={LoginPreference} />
-            <PublicRoute exact path="/login" component={LoginPreference} />
-            <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
-            <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
-            <PublicRoute exact path="/sign-up" component={LoginWithCode} />
-            <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
-            <PublicRoute exact path="/accept-code" component={AcceptCode} />
-            <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
+const App: React.FC = () => {
+  // const location = useLocation();
 
-            <Route exact path="/scratch-editor" render={() => (
-              <MainLayout>
-                <ScratchWorkspace />
-              </MainLayout>
-            )} />
+  // const updateInitPage = async () => {
+  //   console.log("location.pathname",location)
+  //   await Preferences.set({ key: "initPage", value: location.pathname })
+  // }
 
-            <PrivateRoute path="/tabs" component={TabsLayout} />
+  // useEffect(() => {
+  //   updateInitPage()
+  // }, [location])
 
-            {/* <Route path="/tabs" component={TabsLayout} /> */}
-            <Route render={() => <Redirect to="/" />} />
-          </IonRouterOutlet>
-        </IonReactRouter>
-      </IonApp>
-    </AuthProvider>
-  </ScratchProvider>
-  
-);
+  return (
+    <ScratchProvider>
+      <AuthProvider>
+        <IonApp>
+          <IonReactRouter>
+            <IonRouterOutlet>
+              <PublicRoute exact path="/" component={LoginPreference} />
+              <PublicRoute exact path="/login" component={LoginPreference} />
+              <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
+              <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
+              <PublicRoute exact path="/sign-up" component={LoginWithCode} />
+              <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
+              <PublicRoute exact path="/accept-code" component={AcceptCode} />
+              <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
+
+              <Route exact path="/scratch-editor" render={() => (
+                <MainLayout>
+                  <ScratchWorkspace />
+                </MainLayout>
+              )} />
+
+              <PrivateRoute path="/tabs" component={TabsLayout} />
+
+              {/* <Route path="/tabs" component={TabsLayout} /> */}
+              <Route render={() => <Redirect to="/" />} />
+            </IonRouterOutlet>
+          </IonReactRouter>
+        </IonApp>
+      </AuthProvider>
+    </ScratchProvider>
+
+  )
+};
 
 export default App;

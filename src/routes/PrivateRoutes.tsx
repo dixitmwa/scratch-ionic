@@ -49,7 +49,7 @@
 
 // auth/PrivateRoute.tsx
 import React from "react";
-import { Route, Redirect } from "react-router-dom";
+import { Route, Redirect, useHistory, useLocation } from "react-router-dom";
 import { Preferences } from "@capacitor/preferences";
 import { useAuth } from "../service/AuthService/AuthContext";
 
@@ -60,15 +60,21 @@ interface PrivateRouteProps {
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ component: Component, ...rest }) => {
+  const history = useHistory()
+  const location = useLocation()
   const [isAuthenticated, setIsAuthenticated] = React.useState<boolean | null | string>();
 
-  React.useEffect(() => {
-    const checkAuth = async () => {
+  const checkAuth = async () => {
+    // setTimeout(async () => {
       const { value } = await Preferences.get({ key: 'auth' });
+      console.log("value-----from private route", value)
       setIsAuthenticated(!!value);
-    };
+    // }, 10)
+  };
+
+  React.useEffect(() => {
     checkAuth();
-  }, []);
+  }, [location.pathname]);
   // const { isAuthenticated } = useAuth();
 
   return (

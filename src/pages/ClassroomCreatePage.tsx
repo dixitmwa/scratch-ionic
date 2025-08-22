@@ -1,13 +1,15 @@
 import { useHistory } from "react-router";
 import CommonInput from "../components/common-component/Input";
 import CustomButton from "../components/common-component/Button";
-import { IonIcon } from "@ionic/react";
+import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import Plus from "../assets/plus.svg"
 import PlusGray from "../assets/plus_gray.svg"
 import CommonPopup from "../components/common-component/Popup";
 import CommonCard from "../components/common-component/Card";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ClassRoomService from "../service/ClassroomService/ClassRoomService";
+import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
 
 const people = [
     { id: 1, name: "John Wordan" },
@@ -36,6 +38,9 @@ const ClassroomCreatePage = () => {
         classDivision: ""
     })
     const [selected, setSelected] = useState<number[]>([]);
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [studentList, setStudentList] = useState([])
 
     console.log("selected", selected, classDetails)
     const toggleSelect = (id: number) => {
@@ -44,14 +49,37 @@ const ClassroomCreatePage = () => {
         );
     };
 
+    const handleCreateClass = async () => {
+        const reqObj = {
+            Name: classDetails.className,
+            Number: classDetails.classNumber,
+            Section: classDetails.classDivision,
+            studentIds: selected
+        }
+        const response = await ClassRoomService.createClassroomService(reqObj);
+        if (response?.status === 200) {
+            setErrorMessage(response?.data?.message)
+            setShowError(true)
+            console.log("response", response)
+            history.push("/tabs/classroom");
+        }
+        handleCloseModal()
+    }
+
     const handleCloseModal = () => {
         selectStudentModalRef.current?.dismiss();
     }
 
-    const handleSaveClass = () => {
-        history.push("/tabs/classroom");
+    const fetchStudents = async () => {
+        const response = await CodeLinkService.fetchStudentsByDivisionService()
+        if (response?.status == 200) {
+            setStudentList(response?.data?.data)
+        }
     }
-    
+
+    useEffect(() => {
+        fetchStudents()
+    }, [])
 
     return (
         <div style={{
@@ -112,15 +140,15 @@ const ClassroomCreatePage = () => {
                         btnText="Save"
                         background="#D929FF"
                         disable={classDetails.className === "" || classDetails.classNumber === "" || classDetails.classDivision === ""}
-                        onClick={() => { handleSaveClass() }}
+                        onClick={() => { handleCreateClass() }}
                     />
                 </div>
                 <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
                     <CommonCard headerText="Select students">
                         <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
                             {console.log("people----", people)}
-                            {people?.map((person) => {
-                                 console.log("peopleinside", person)
+                            {studentList?.map((person) => {
+                                console.log("peopleinside", person)
                                 const isSelected = selected.includes(person.id);
                                 return (
                                     <div
@@ -152,6 +180,7 @@ const ClassroomCreatePage = () => {
                     </CommonCard>
                 </CommonPopup>
             </div>
+            <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
         </div>
     )
 }

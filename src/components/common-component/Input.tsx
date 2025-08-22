@@ -69,11 +69,12 @@
 // export default CommonInput;
 
 
-import { IonIcon } from "@ionic/react";
+import { IonIcon, IonToast } from "@ionic/react";
 import { useState } from "react";
 import HideEye from "../../assets/hide_eye.svg"
 import ViewEye from "../../assets/view.svg"
-import Clipboard from "../../assets/clipboard.svg"
+import { Clipboard } from "@capacitor/clipboard"
+import ClipboardIcon from "../../assets/clipboard.svg"
 
 const countryCodes = [
     { name: "India", code: "+91" },
@@ -101,15 +102,24 @@ const CommonInput = ({
 }) => {
     const [selectedCode, setSelectedCode] = useState("+91");
     const [showPassword, setShowPassword] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
 
     const handleCodeChange = (e: any) => {
         setSelectedCode(e.target.value);
         onCountryCodeChange(e.target.value);
     };
 
-    const handleCopy = () => {
-
-    }
+    const copyTextToClipboard = async (text: string) => {
+        try {
+            await Clipboard.write({
+                string: text
+            });
+            setIsOpen(true)
+            console.log('Text copied to clipboard!');
+        } catch (error) {
+            console.error('Failed to copy text:', error);
+        }
+    };
 
     const isPasswordType = type === "password";
 
@@ -262,7 +272,7 @@ const CommonInput = ({
                 {copyInput && (
                     <span
                         title="Copy"
-                        onClick={handleCopy}
+                        onClick={() => { copyTextToClipboard(value) }}
                         style={{
                             position: "absolute",
                             right: "20px",
@@ -272,10 +282,16 @@ const CommonInput = ({
                             fontSize: "22px"
                         }}
                     >
-                        <IonIcon icon={Clipboard} />
+                        <IonIcon icon={ClipboardIcon} />
                     </span>
                 )}
             </div>
+            <IonToast
+                isOpen={isOpen}
+                message="Text copied."
+                onDidDismiss={() => setIsOpen(false)}
+                duration={2000}
+            ></IonToast>
         </div>
     );
 };

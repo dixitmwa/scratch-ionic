@@ -31,6 +31,7 @@ import AssignmentPage from "../pages/AssignmentPage";
 import AssignmentCreatePage from "../pages/AssignmentCreatePage";
 import AssignmentUpcomingPage from "../pages/AssignmentUpcomingPage";
 import AssignmentHistoryPage from "../pages/AssignmentHistoryPage";
+import MyLibraryPage from "../pages/MyLibraryPage";
 
 const TabsLayout = () => {
   const [showTab, setShowTab] = useState(true);
@@ -66,7 +67,7 @@ const TabsLayout = () => {
       <IonTabs>
         <IonRouterOutlet>
           <Route exact path="/tabs/editor" component={EditorPage} />
-          <Route exact path="/tabs/editor/my-library" component={EditorPage} />
+          <Route exact path="/tabs/editor/my-library" component={MyLibraryPage} />
           <Route exact path="/tabs/history" component={HistoryPage} />
           <Route exact path="/tabs/project" component={ProjectPage} />
           <Route exact path="/tabs/project/details" component={ProjectDetailsPage} />
@@ -93,7 +94,7 @@ const TabsLayout = () => {
                 {/* <img src={Scanner}/> */}
                 <IonLabel>Playground</IonLabel>
               </IonTabButton>
-              <IonTabButton tab="history" href="/tabs/history" className={location.pathname === "/tabs/history" ? "active-tab" : ""}>
+              <IonTabButton tab="history" href="/tabs/history" className={location.pathname.startsWith("/tabs/history") ? "active-tab" : ""}>
                 <IonIcon icon={HistoryTab} />
                 <IonLabel>History</IonLabel>
               </IonTabButton>
@@ -112,7 +113,7 @@ const TabsLayout = () => {
         {
           showTab && !isStudent && (
             <IonTabBar slot="bottom" className="custom-tab-bar">
-              <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname === "/tabs/editor" ? "active-tab" : ""}>
+              <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
                 <IonIcon icon={ScannerTab} />
                 {/* <img src={Scanner}/> */}
                 <IonLabel>Playground</IonLabel>

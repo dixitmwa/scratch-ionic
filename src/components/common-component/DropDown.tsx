@@ -7,11 +7,11 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeh
   // const handleSelect = (option: any) => {
   //   onChange(option);
   // };
-  
+
   const handleSelect = (value: any, option: { label: string; value: any }) => {
     onChange(option);
     setIsOpen(false);
-  };  
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -40,6 +40,7 @@ const CustomDropdown = ({ options = [], value = "", onChange, textHeader, placeh
         style={{
           flex: 1,
           border: "2px solid #607E9C",
+          minHeight: "60px",
           borderRadius: "50px",
           padding: "16px",
           paddingLeft: "16px",

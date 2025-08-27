@@ -295,14 +295,14 @@ debugger
                     <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
                     <CustomButton btnText='' icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
                     <CustomButton btnText='' icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: true })
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: true })
                     } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'up arrow', isDown: false })
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: false })
                     } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
                     <CustomButton btnText='' icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: true })
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: true })
                     } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'down arrow', isDown: false })
+                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: false })
                     } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
                 </div>
 

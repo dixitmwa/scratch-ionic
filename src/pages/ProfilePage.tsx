@@ -15,6 +15,7 @@ import TermsAndConditions from "../assets/termandcondition.svg"
 import Logout from "../assets/logout.svg"
 import Radio from "../assets/radio.svg"
 import Plus from "../assets/plus.svg"
+import Profile from "../assets/profile.svg"
 import CommonPopup from "../components/common-component/Popup";
 import CustomButton from "../components/common-component/Button";
 import { Preferences } from "@capacitor/preferences";
@@ -23,23 +24,6 @@ import { useHistory } from "react-router";
 import CustomDropdown from "../components/common-component/DropDown";
 import CommonInput from "../components/common-component/Input";
 import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
-
-const people = [
-    { id: 1, name: "John Wordan" },
-    { id: 2, name: "Hethu Jackson" },
-    { id: 3, name: "Alice Johnson" },
-    { id: 4, name: "Michael Smith" },
-    { id: 5, name: "Emily Davis" },
-    { id: 6, name: "David Brown" },
-    { id: 7, name: "Sarah Wilson" },
-    { id: 8, name: "James Taylor" },
-    { id: 9, name: "Sophia Miller" },
-    { id: 10, name: "Daniel Anderson" },
-    { id: 11, name: "Daniel Anderson" },
-    { id: 12, name: "Daniel Anderson" },
-    { id: 13, name: "Daniel Anderson" },
-    { id: 14, name: "Daniel Anderson" },
-];
 
 const ProfilePage = () => {
     const history = useHistory()
@@ -64,7 +48,13 @@ const ProfilePage = () => {
     const [selected, setSelected] = useState<number[]>([]);
     const [showGeneratedCode, setShowGeneratedCode] = useState(false)
     const [classDivisionData, setClassDivisionData] = useState([]);
-    const [generatedCode, setGeneratedCode] = useState("")
+    const [generatedCode, setGeneratedCode] = useState("");
+    const [profileData, setProfileData] = useState({
+        name: '',
+        school: '',
+        className: '',
+        section: '',
+    });
     const [classesDetails, setClassesDetails] = useState({
         class: '',
         division: ''
@@ -74,7 +64,7 @@ const ProfilePage = () => {
         value: item.classId
     }));
 
-    console.log(classDetails, classesDetails)
+    console.log(profileData)
     // const divisionOptionsRaw = classDivisionData.find(
     //     item => item.className === classDetails.class
     // )?.sections || [];
@@ -85,8 +75,7 @@ const ProfilePage = () => {
         item => item.classId === classDetails.class
     )?.sections || [];
 
-
-    const divisionOptions = divisionOptionsRaw.map(section => ({
+    const divisionOptions = divisionOptionsRaw.map((section: any) => ({
         label: section.sectionName,
         value: section.sectionId
     }));
@@ -176,6 +165,20 @@ const ProfilePage = () => {
                 console.log("response", response)
             }
         }
+    }
+
+    const updateProfile = async () => {
+        debugger
+        const reqObj = {
+            classId: classDetails.class,
+            sectionId: classDetails.division,
+            userId: selected
+        };
+        // const response = await CodeLinkService.updateProfileService(reqObj);
+        // console.log("Profile updating", response);
+        // if (response?.status === 200) {
+        //     setShowGeneratedCode(true);
+        // }
     }
 
     useIonViewDidEnter(() => {
@@ -297,12 +300,61 @@ const ProfilePage = () => {
                                         )
                                     }
                                 </>
+                            ) : selectedData.route === "edit-profile" ? (
+                                <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "85%", overflowY: "scroll" }}>
+                                    <div>
+                                        <CommonInput
+                                            textHeader="Name"
+                                            type="text"
+                                            value={profileData.name}
+                                            placeholder="Enter name"
+                                            onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} />
+                                        <CommonInput
+                                            textHeader="School"
+                                            type="text"
+                                            value={profileData.school}
+                                            placeholder="Enter school"
+                                            onChange={(e) => setProfileData({ ...profileData, school: e.target.value })} />
+                                        <div style={{ display: "flex", gap: "10px" }}>
+                                            <CustomDropdown
+                                                textHeader="Class"
+                                                value={profileData.className}
+                                                onChange={(val: any) => setProfileData({ ...profileData, className: val })}
+                                                options={[
+                                                    "5th",
+                                                    "6th",
+                                                    "7th",
+                                                    "8th",
+                                                    "9th",
+                                                    "10th",
+                                                    "11th",
+                                                    "12th"
+                                                ]}
+                                            />
+                                            <CustomDropdown
+                                                textHeader="Section"
+                                                value={profileData.section}
+                                                onChange={(val: any) => setProfileData({ ...profileData, section: val })}
+                                                options={[
+                                                    "A",
+                                                    "B",
+                                                    "C",
+                                                    "D",
+                                                ]}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <CustomButton btnText="Update profile" background={"#FF8429"} txtColor={"white"} style={{ fontSize: "20px", marginTop: "10px", marginBottom: "10px" }} disable={false} onClick={() => updateProfile()} />
+                                    </div>
+                                </div>
                             ) : null
                         }
                     </CommonModal>
                 ) : (
                     <>
                         <ChipCard title="Sound" icon={<IonIcon icon={MuteSound} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("sound") }} />} />
+                        <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={Profile} style={{ fontSize: '28px' }} /> <p>Edit profile</p></div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("edit-profile") }} />} />
                         {isStudent ? (<ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={HowToPlay} style={{ fontSize: '28px' }} /> <p>How to play</p></div>}
                             icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("how-to-play") }} />} />) :
                             (

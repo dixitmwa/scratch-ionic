@@ -11,23 +11,6 @@ import { useEffect, useRef, useState } from "react";
 import ClassRoomService from "../service/ClassroomService/ClassRoomService";
 import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
 
-const people = [
-    { id: 1, name: "John Wordan" },
-    { id: 2, name: "Hethu Jackson" },
-    { id: 3, name: "Alice Johnson" },
-    { id: 4, name: "Michael Smith" },
-    { id: 5, name: "Emily Davis" },
-    { id: 6, name: "David Brown" },
-    { id: 7, name: "Sarah Wilson" },
-    { id: 8, name: "James Taylor" },
-    { id: 9, name: "Sophia Miller" },
-    { id: 10, name: "Daniel Anderson" },
-    { id: 11, name: "Daniel Anderson" },
-    { id: 12, name: "Daniel Anderson" },
-    { id: 13, name: "Daniel Anderson" },
-    { id: 14, name: "Daniel Anderson" },
-];
-
 const ClassroomCreatePage = () => {
     const history = useHistory();
     const selectStudentModalRef = useRef();
@@ -146,7 +129,6 @@ const ClassroomCreatePage = () => {
                 <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
                     <CommonCard headerText="Select students">
                         <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
-                            {console.log("people----", people)}
                             {studentList?.map((person) => {
                                 console.log("peopleinside", person)
                                 const isSelected = selected.includes(person.id);

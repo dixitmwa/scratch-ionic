@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IonIcon } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import { useHistory } from "react-router";
@@ -9,6 +9,8 @@ import CustomDropdown from "../components/common-component/DropDown";
 import CommonPopup from "../components/common-component/Popup";
 import CommonCard from "../components/common-component/Card";
 import Plus from "../assets/plus.svg"
+import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
+import AssignmentService from "../service/AssignmentService/AssignmentService";
 
 const people = [
     { id: 1, name: "John Wordan" },
@@ -32,16 +34,34 @@ const AssignmentCreatePage = () => {
     const [selectedClass, setSelectedClass] = useState(true)
     const selectStudentModalRef = useRef();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [classDivisionData, setClassDivisionData] = useState<any[]>([]);
+    const [studentList, setStudentList] = useState<any[]>([]);
     const [classDetails, setClassDetails] = useState({
         class: "",
         division: "",
         assignmentName: "",
+        className: "",
         description: "",
         date: "",
-        month: "",
-        year: ""
     })
     const [selected, setSelected] = useState<number[]>([]);
+    const [selectedOptions, setSelectedOptions] = useState({ class: "", division: "" });
+
+    const classOptions = classDivisionData.map(item => ({
+        label: item.classNumber,
+        value: item.classId
+    }));
+
+    const divisionOptionsRaw = classDivisionData.find(
+        item => item.classNumber === classDetails.class
+    )?.sections || [];
+
+    const divisionOptions = divisionOptionsRaw.map((section: any) => ({
+        label: section.sectionName,
+        value: section.sectionId
+    }));
+
+    console.log("selectedOptions", divisionOptions, divisionOptionsRaw, classOptions, classDivisionData, classDetails)
 
     const toggleSelect = (id: number) => {
         setSelected((prev) =>
@@ -52,6 +72,56 @@ const AssignmentCreatePage = () => {
     const handleCloseModal = () => {
         selectStudentModalRef.current?.dismiss();
     }
+
+    const fetchClassAndDiv = async () => {
+        const response = await CodeLinkService.fetchClassAndDivisionService()
+        console.log("response", response)
+        if (response?.status === 200) {
+            setClassDivisionData(response?.data?.data)
+        }
+    }
+
+    const handleScheduleAssignment = async () => {
+        const reqObj = {
+            // title:classDetails.className,
+            description: classDetails.description,
+            endDate: classDetails.date,
+            classId: selectedOptions.class,
+            sectionId: selectedOptions.division,
+            studentIds: selected,
+            // classDetails,
+            // selectedOptions,
+            // selected
+        }
+        const response = await AssignmentService.createAssignmentService(reqObj);
+        console.log("response", response)
+        if (response?.status === 200) {
+            // Handle success
+        }
+        console.log("-----req", classDetails, selectedOptions, selected)
+    }
+
+    const fetchStudentByDivision = async () => {
+        debugger
+        if (selectedOptions.class && selectedOptions.division) {
+            const response = await CodeLinkService.fetchStudentsByDivisionService({ classId: selectedOptions.class, sectionId: selectedOptions.division })
+            if (response?.status === 200) {
+                debugger
+                setStudentList(response?.data?.data)
+                console.log("response", response)
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (!selectedClass) {
+            fetchStudentByDivision()
+        }
+    }, [selectedClass, selectedOptions.class, selectedOptions.division])
+
+    useEffect(() => {
+        fetchClassAndDiv()
+    }, [])
 
     return (
         <div style={{
@@ -90,27 +160,19 @@ const AssignmentCreatePage = () => {
                     <CustomDropdown
                         placeholder="Class"
                         value={classDetails.class}
-                        onChange={(val: any) => setClassDetails({ ...classDetails, class: val })}
-                        options={[
-                            "5th",
-                            "6th",
-                            "7th",
-                            "8th",
-                            "9th",
-                            "10th",
-                            "11th",
-                            "12th"
-                        ]} />
+                        onChange={(val: any) => {
+                            setClassDetails({ ...classDetails, class: val.label, division: '' })
+                            setSelectedOptions({ ...selectedOptions, class: val.value, division: '' })
+                        }}
+                        options={classOptions} />
                     <CustomDropdown
                         placeholder="Division"
                         value={classDetails.division}
-                        onChange={(val: any) => setClassDetails({ ...classDetails, division: val })}
-                        options={[
-                            "A",
-                            "B",
-                            "C",
-                            "D"
-                        ]} />
+                        onChange={(val: any) => {
+                            setClassDetails({ ...classDetails, division: val.label })
+                            setSelectedOptions({ ...selectedOptions, division: val.value })
+                        }}
+                        options={divisionOptions} />
                 </div>
                 {!selectedClass && (
                     <>
@@ -124,9 +186,9 @@ const AssignmentCreatePage = () => {
                         <CommonInput
                             textHeader="Class name"
                             type="text"
-                            value={classDetails.class}
+                            value={classDetails.className}
                             placeholder="Enter name"
-                            onChange={(e) => { setClassDetails({ ...classDetails, class: e.target.value }) }} />
+                            onChange={(e) => { setClassDetails({ ...classDetails, className: e.target.value }) }} />
                     </>
                 )}
                 <CommonInput
@@ -145,57 +207,47 @@ const AssignmentCreatePage = () => {
                     onChange={(e) => { setClassDetails({ ...classDetails, description: e.target.value }) }} />
                 <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginTop: "10px", marginBottom: "0px" }}>Select last submitting date</p>
 
-                <div style={{ display: "flex", gap: "5px" }}>
-
-                    <CustomDropdown
-                        placeholder="Date"
-                        value={classDetails.date}
-                        onChange={(val: any) => setClassDetails({ ...classDetails, date: val })}
-                        options={[
-                            "5th",
-                            "6th",
-                            "7th",
-                            "8th",
-                            "9th",
-                            "10th",
-                            "11th",
-                            "12th"
-                        ]} />
-                    <CustomDropdown
-                        placeholder="Month"
-                        value={classDetails.month}
-                        onChange={(val: any) => setClassDetails({ ...classDetails, month: val })}
-                        options={[
-                            "5th",
-                            "6th",
-                            "7th",
-                            "8th",
-                            "9th",
-                            "10th",
-                            "11th",
-                            "12th"
-                        ]} />
-                    <CustomDropdown
-                        placeholder="Year"
-                        value={classDetails.year}
-                        onChange={(val: any) => setClassDetails({ ...classDetails, year: val })}
-                        options={[
-                            "5th",
-                            "6th",
-                            "7th",
-                            "8th",
-                            "9th",
-                            "10th",
-                            "11th",
-                            "12th"
-                        ]} />
+                <div style={{ display: "flex", gap: "5px", width: "100%" }}>
+                    <div style={{ flex: 1 }}>
+                        <label style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginBottom: "8px", display: "block" }}>Due date</label>
+                        <input
+                            type="date"
+                            value={classDetails.date}
+                            min={new Date().toISOString().split('T')[0]}
+                            onChange={e => setClassDetails({ ...classDetails, date: e.target.value })}
+                            style={{
+                                width: "100%",
+                                border: "2px solid #607E9C",
+                                minHeight: "60px",
+                                borderRadius: "50px",
+                                padding: "16px",
+                                fontSize: "20px",
+                                color: "#607E9C",
+                                background: "transparent",
+                                outline: "none"
+                            }}
+                        />
+                    </div>
                 </div>
-                <CustomButton background="#FF8429" btnText="Schedule" onClick={() => { history.push("/tabs/assignment") }} style={{ marginTop: "10px" }} />
+                <CustomButton
+                    background="#FF8429"
+                    btnText="Schedule"
+                    onClick={() => { handleScheduleAssignment() }}
+                    style={{ marginTop: "10px" }}
+                    disable={
+                        !classDetails.class ||
+                        !classDetails.division ||
+                        !classDetails.assignmentName ||
+                        !classDetails.description ||
+                        !classDetails.date ||
+                        (!selectedClass ? selected.length === 0 || !classDetails.className : false)
+                    }
+                />
             </div>
             <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
                 <CommonCard headerText="Select students">
                     <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
-                        {people?.map((person) => {
+                        {studentList?.map((person) => {
                             const isSelected = selected.includes(person.id);
                             return (
                                 <div

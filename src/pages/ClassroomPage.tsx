@@ -1,20 +1,40 @@
 import { IonIcon } from "@ionic/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChipCard from "../components/common-component/ChipCard";
 import RightArrow from '../assets/right_arrow.svg'
 import { useHistory } from "react-router";
 import CustomButton from "../components/common-component/Button";
 import PlusButton from "../assets/plus_button.svg"
+import Plus from "../assets/plus.svg"
 import SearchInput from "../components/common-component/SearchInput";
+import ClassRoomService from "../service/ClassroomService/ClassRoomService";
+import { Preferences } from "@capacitor/preferences";
 
 const ClassroomPage = () => {
     const history = useHistory();
-    const [classroomList, setClassroomList] = useState([{}, {}])
+    const [classroomList, setClassroomList] = useState([])
     const [inputValue, setInputValue] = useState("")
 
     const handleSearch = () => {
         console.log(inputValue)
     }
+
+    const fetchClassrooms = async () => {
+        const response = await ClassRoomService.fetchAllClassroomsService();
+        if (response.status === 200) {
+            setClassroomList(response.data.data);
+        }
+    }
+
+    const navigateToDetails = async (sectionId: string) => {
+        console.log('sectionId', sectionId)
+        await Preferences.set({ key: "sectionId", value: sectionId });
+        history.push(`/tabs/classroom/details`);
+    }
+
+    useEffect(() => {
+        fetchClassrooms()
+    }, [])
 
     return (
         <div style={{
@@ -41,11 +61,11 @@ const ClassroomPage = () => {
                         {
                             classroomList.map((item: any, index: number) => (
                                 <>
-                                    <ChipCard textTransform={true} count={1} title={
+                                    <ChipCard textTransform={true} count={index + 1} title={
                                         <div style={{ display: "flex", flexDirection: "column" }}>
-                                            <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>Animal</p>
+                                            <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item.className}</p>
                                             <p style={{ margin: "0px", fontSize: "16px" }}>20-aug</p>
-                                        </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/classroom/details") }} />} />
+                                        </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { navigateToDetails(item.sectionId) }} />} />
                                     {/* <div style={{ marginBottom: "10px" }}></div> */}
                                 </>
                             ))

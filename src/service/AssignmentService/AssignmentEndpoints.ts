@@ -1,0 +1,5 @@
+const ASSIGNMENT_API_ENDPOINTS = {
+    CREATE_ASSIGNMENT: '/Project/AddProject',
+}
+
+export default ASSIGNMENT_API_ENDPOINTS;

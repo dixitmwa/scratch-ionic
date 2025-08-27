@@ -68,13 +68,13 @@ const TabsLayout = () => {
         <IonRouterOutlet>
           <Route exact path="/tabs/editor" component={EditorPage} />
           <Route exact path="/tabs/editor/my-library" component={MyLibraryPage} />
+          <Route exact path="/tabs/scratch-editor" component={ScratchWorkspace} />
           <Route exact path="/tabs/history" component={HistoryPage} />
           <Route exact path="/tabs/project" component={ProjectPage} />
           <Route exact path="/tabs/project/details" component={ProjectDetailsPage} />
           <Route exact path="/tabs/profile" component={ProfilePage} />
           <Route exact path="/tabs/profile/code-history" component={CodeHistoryPage} />
           <Route exact path="/tabs/playground" component={PlaygroundPage} />
-          <Route exact path="/tabs/scratch-editor" component={ScratchWorkspace} />
           <Route exact path="/tabs/classroom" component={ClassroomPage} />
           <Route exact path="/tabs/classroom/create" component={ClassroomCreatePage} />
           <Route exact path="/tabs/classroom/details" component={ClassroomDetailsPage} />

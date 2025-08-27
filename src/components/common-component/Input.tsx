@@ -98,7 +98,8 @@ const CommonInput = ({
     onCountryCodeChange = (e: any) => { },
     placeholder = "",
     textarea = false,
-    copyInput = false
+    copyInput = false,
+    disabled = false
 }) => {
     const [selectedCode, setSelectedCode] = useState("+91");
     const [showPassword, setShowPassword] = useState(false);
@@ -215,6 +216,7 @@ const CommonInput = ({
                                 paddingRight: isPasswordType ? "50px" : "16px"
                             }}
                             placeholder={placeholder}
+                            disabled={disabled}
                         />
                     )
                 }

@@ -21,6 +21,7 @@ export default function ScratchWorkspace() {
   const [ready, setReady] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
   const [selectedSpriteId, setSelectedSpriteId] = useState(null);
+  const selectedSpiId = useRef(null)
 
   const lockOrientation = async () => {
     try {
@@ -97,59 +98,6 @@ export default function ScratchWorkspace() {
 
     workspaceRef.current.addChangeListener(handleBlockChange);
 
-    const handleProjectLoaded = () => {
-      const spriteTargets = vmRef.current?.runtime?.targets.filter(t => t.isSprite);
-      if (!selectedSpriteId) {
-        vmRef.current?.setEditingTarget(spriteTargets[1].id);
-        updateBlocksForSprite(spriteTargets[1].id);
-      }
-      else {
-        updateBlocksForSprite(selectedSpriteId);
-      }
-      setTimeout(() => {
-        const ws: any = workspaceRef.current;
-        if (!ws) return;
-
-        ws.setScale(0.9);
-        ws.resize();
-
-        const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
-
-        ws.scrollX -= offsetX;
-        ws.scrollY -= offsetY;
-
-        if (ws.updateScreenCalculations) {
-          ws.updateScreenCalculations();
-        }
-        ScratchBlocks.svgResize(ws);
-        ws.resize();
-        if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
-          ws.dragSurface_.updateTransform();
-        }
-      }, 500);
-      // setTimeout(() => {
-      //   const ws = workspaceRef.current;
-      //   if (!ws) return;
-
-      //   ws.setScale(1);
-      //   ws.resize();
-
-      //   const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
-
-      //   ws.scrollX -= offsetX;
-      //   ws.scrollY -= offsetY;
-
-      //   if (ws.updateScreenCalculations) {
-      //     ws.updateScreenCalculations();
-      //   }
-      //   ScratchBlocks.svgResize(ws);
-      //   ws.resize();
-      //   if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
-      //     ws.dragSurface_.updateTransform();
-      //   }
-      // }, 100);
-    };
-
     const vm: any = vmRef.current;
 
     vm?.on('PROJECT_LOADED', () => {
@@ -197,6 +145,60 @@ export default function ScratchWorkspace() {
     };
   }, [ready]);
 
+  const handleProjectLoaded = () => {
+    const spriteTargets = vmRef.current?.runtime?.targets.filter(t => t.isSprite);
+    debugger
+    if (!selectedSpiId.current) {
+      vmRef.current?.setEditingTarget(spriteTargets[1].id);
+      updateBlocksForSprite(spriteTargets[1].id);
+    }
+    else {
+      updateBlocksForSprite(selectedSpriteId);
+    }
+    setTimeout(() => {
+      const ws: any = workspaceRef.current;
+      if (!ws) return;
+
+      ws.setScale(0.9);
+      ws.resize();
+
+      const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
+
+      ws.scrollX -= offsetX;
+      ws.scrollY -= offsetY;
+
+      if (ws.updateScreenCalculations) {
+        ws.updateScreenCalculations();
+      }
+      ScratchBlocks.svgResize(ws);
+      ws.resize();
+      if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
+        ws.dragSurface_.updateTransform();
+      }
+    }, 500);
+    // setTimeout(() => {
+    //   const ws = workspaceRef.current;
+    //   if (!ws) return;
+
+    //   ws.setScale(1);
+    //   ws.resize();
+
+    //   const { viewLeft: offsetX, viewTop: offsetY } = ws.getMetrics();
+
+    //   ws.scrollX -= offsetX;
+    //   ws.scrollY -= offsetY;
+
+    //   if (ws.updateScreenCalculations) {
+    //     ws.updateScreenCalculations();
+    //   }
+    //   ScratchBlocks.svgResize(ws);
+    //   ws.resize();
+    //   if (ws.dragSurface_ && ws.dragSurface_.updateTransform) {
+    //     ws.dragSurface_.updateTransform();
+    //   }
+    // }, 100);
+  };
+
   const updateBlocksForSprite = (spriteId: any) => {
     const ws = workspaceRef.current;
     const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
@@ -206,12 +208,14 @@ export default function ScratchWorkspace() {
     if (!xmlString.trim().startsWith('<xml')) {
       xmlString = `<xml>${xmlString}</xml>`;
     }
+    console.log("xmlString", xmlString)
     try {
       ws.clear();
       const dom = ScratchBlocks.Xml.textToDom(xmlString);
       ScratchBlocks.Xml.domToWorkspace(dom, ws);
       ScratchBlocks.svgResize(ws);
       ws.resize();
+      selectedSpiId.current = spriteId
       setSelectedSpriteId(spriteId);
     } catch (e) {
       console.error('Failed to set blocks for sprite', e);
@@ -219,9 +223,8 @@ export default function ScratchWorkspace() {
   };
 
   const handleSpriteClick = (spriteId: any) => {
-    if (selectedSpriteId) {
-      saveBlocksToVM(selectedSpriteId);
-    }
+    debugger
+    selectedSpiId.current = spriteId;
     setSelectedSpriteId(spriteId);
     vmRef.current?.setEditingTarget(spriteId);
     // handleProjectLoaded()
@@ -282,9 +285,12 @@ export default function ScratchWorkspace() {
       }
     } else {
       const { value } = await Preferences.get({ key: 'project' })
-      console.log("value->", value);
+      console.log("value->", value)
       // const projectUrl = value;
       const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/49b33c1f68664dc9b4af7dadbade5357";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3";
+      // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
       if (!projectUrl) throw new Error("No file and no project URL in localStorage");
 
       try {
@@ -311,6 +317,7 @@ export default function ScratchWorkspace() {
         console.error('Error loading project:', error);
       }
     }
+
   };
 
   function uint8ArrayToBase64(uint8Array) {
@@ -325,6 +332,8 @@ export default function ScratchWorkspace() {
     return btoa(binary);
   }
 
+
+  // Navigate to playground page after saving current project
   const navigateToPlaygorund = async () => {
     try {
       console.log("1---")
@@ -383,21 +392,6 @@ export default function ScratchWorkspace() {
     return `data:${mimeType};base64,${base64String}`;
   };
 
-  function saveBlocksToVM(spriteId) {
-    debugger
-    const ws = workspaceRef.current;
-    const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
-    if (!ws || !target) return;
-    try {
-      // Export workspace to XML
-      const xml = ScratchBlocks.Xml.workspaceToDom(ws);
-      // Update VM's block XML for the target
-      target.blocks.fromXML(ScratchBlocks.Xml.domToText(xml));
-    } catch (e) {
-      console.error('Error saving workspace blocks to VM', e);
-    }
-  }
-
   useIonViewDidEnter(() => {
     lockOrientation();
     handleUpload();
@@ -427,8 +421,8 @@ export default function ScratchWorkspace() {
           }}
         />
         <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "4px" }}>
-          <CustomButton btnText='' icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
-          <CustomButton btnText='' icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          <CustomButton btnText="" icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          <CustomButton btnText="" icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
         </div>
       </CommonCard>
 

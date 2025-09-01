@@ -1,4 +1,4 @@
-import { IonIcon, IonModal, IonPage, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from "@ionic/react";
+import { IonIcon, IonModal, IonPage, IonToast, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from "@ionic/react";
 import ChipCard from "../components/common-component/ChipCard";
 import { arrowForwardOutline, volumeLowOutline, exitOutline, helpOutline, bookOutline, documentTextOutline, logOutOutline } from "ionicons/icons";
 import { profileConstant } from "../constant/Constant";
@@ -24,6 +24,7 @@ import { useHistory } from "react-router";
 import CustomDropdown from "../components/common-component/DropDown";
 import CommonInput from "../components/common-component/Input";
 import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
+import AuthService from "../service/AuthService/AuthService";
 
 const ProfilePage = () => {
     const history = useHistory()
@@ -44,11 +45,15 @@ const ProfilePage = () => {
         division: "",
         classname: ""
     })
+    const [isLoading, setIsLoading] = useState(false);
     const [loadingLogOut, setLoadingLogOut] = useState(false)
     const [selected, setSelected] = useState<number[]>([]);
     const [showGeneratedCode, setShowGeneratedCode] = useState(false)
     const [classDivisionData, setClassDivisionData] = useState([]);
     const [generatedCode, setGeneratedCode] = useState("");
+    const [userDetails, setUserDetails] = useState<any>({})
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
     const [profileData, setProfileData] = useState({
         name: '',
         school: '',
@@ -110,7 +115,6 @@ const ProfilePage = () => {
         setTimeout(() => {
             logoutModalRef.current?.dismiss();
             history.push('/login')
-            // router.push("/login", "forward");
         }, 1500)
     }
 
@@ -125,6 +129,12 @@ const ProfilePage = () => {
             setIsStudent(true)
         } else {
             setIsStudent(false)
+        }
+
+        const responseProfile = await AuthService.fetchLoggedUserDetailsByIdService();
+        console.log("responseProfile", responseProfile);
+        if (responseProfile?.status === 200) {
+            setUserDetails(responseProfile?.data?.data);
         }
 
         const response = await CodeLinkService.fetchClassAndDivisionService()
@@ -168,17 +178,21 @@ const ProfilePage = () => {
     }
 
     const updateProfile = async () => {
+        setIsLoading(true);
         debugger
         const reqObj = {
-            classId: classDetails.class,
-            sectionId: classDetails.division,
-            userId: selected
+            Name: userDetails?.name,
+            // classId: classDetails.class,
+            // sectionId: classDetails.division,
+            // userId: selected
         };
-        // const response = await CodeLinkService.updateProfileService(reqObj);
-        // console.log("Profile updating", response);
-        // if (response?.status === 200) {
-        //     setShowGeneratedCode(true);
-        // }
+
+        const response = await AuthService.updateProfileService(reqObj);
+        if (response?.status === 200) {
+            setShowError(true);
+            setErrorMessage(response?.data?.message);
+        }
+        setIsLoading(false);
     }
 
     useIonViewDidEnter(() => {
@@ -306,19 +320,20 @@ const ProfilePage = () => {
                                         <CommonInput
                                             textHeader="Name"
                                             type="text"
-                                            value={profileData.name}
+                                            value={userDetails?.name}
                                             placeholder="Enter name"
-                                            onChange={(e) => setProfileData({ ...profileData, name: e.target.value })} />
+                                            onChange={(e) => setUserDetails({ ...userDetails, name: e.target.value })} />
                                         <CommonInput
                                             textHeader="School"
                                             type="text"
-                                            value={profileData.school}
+                                            value={userDetails?.schoolName}
                                             placeholder="Enter school"
+                                            disabled={true}
                                             onChange={(e) => setProfileData({ ...profileData, school: e.target.value })} />
                                         <div style={{ display: "flex", gap: "10px" }}>
                                             <CustomDropdown
                                                 textHeader="Class"
-                                                value={profileData.className}
+                                                value={userDetails.classNumber}
                                                 onChange={(val: any) => setProfileData({ ...profileData, className: val })}
                                                 options={[
                                                     "5th",
@@ -330,10 +345,11 @@ const ProfilePage = () => {
                                                     "11th",
                                                     "12th"
                                                 ]}
+                                                disabled={true}
                                             />
                                             <CustomDropdown
                                                 textHeader="Section"
-                                                value={profileData.section}
+                                                value={userDetails?.section}
                                                 onChange={(val: any) => setProfileData({ ...profileData, section: val })}
                                                 options={[
                                                     "A",
@@ -341,11 +357,18 @@ const ProfilePage = () => {
                                                     "C",
                                                     "D",
                                                 ]}
+                                                disabled={true}
                                             />
                                         </div>
+                                        <CommonInput
+                                            textHeader="Email/Mobile"
+                                            value={userDetails?.email || userDetails?.mobileNumber}
+                                            disabled={true}
+                                            onChange={(val: any) => setProfileData({ ...profileData, email: val })}
+                                        />
                                     </div>
                                     <div>
-                                        <CustomButton btnText="Update profile" background={"#FF8429"} txtColor={"white"} style={{ fontSize: "20px", marginTop: "10px", marginBottom: "10px" }} disable={false} onClick={() => updateProfile()} />
+                                        <CustomButton isLoading={isLoading} btnText="Update profile" background={"#FF8429"} txtColor={"white"} style={{ fontSize: "20px", marginTop: "10px", marginBottom: "10px" }} disable={false} onClick={() => updateProfile()} />
                                     </div>
                                 </div>
                             ) : null
@@ -417,6 +440,7 @@ const ProfilePage = () => {
                     </div>
                 </CommonCard>
             </CommonPopup>
+            <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
         </div>
         // </IonPage>
     )

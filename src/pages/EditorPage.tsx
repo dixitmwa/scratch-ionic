@@ -27,6 +27,7 @@ export default function EditorPage() {
   const takePhoto = async () => {
     setLoading(true);
     history.push("/tabs/scratch-editor");
+    return
     const photo = await Camera.getPhoto({
       resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
@@ -90,6 +91,7 @@ export default function EditorPage() {
   const scanDocument = async () => {
     setLoading(true);
     history.push("/tabs/scratch-editor");
+    return 
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });

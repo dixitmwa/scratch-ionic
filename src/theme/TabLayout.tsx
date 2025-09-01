@@ -32,6 +32,7 @@ import AssignmentCreatePage from "../pages/AssignmentCreatePage";
 import AssignmentUpcomingPage from "../pages/AssignmentUpcomingPage";
 import AssignmentHistoryPage from "../pages/AssignmentHistoryPage";
 import MyLibraryPage from "../pages/MyLibraryPage";
+import AssignmentDetailsPage from "../pages/AssignmentDetailsPage";
 
 const TabsLayout = () => {
   const [showTab, setShowTab] = useState(true);
@@ -82,6 +83,7 @@ const TabsLayout = () => {
           <Route exact path="/tabs/assignment/create" component={AssignmentCreatePage} />
           <Route exact path="/tabs/assignment/upcoming" component={AssignmentUpcomingPage} />
           <Route exact path="/tabs/assignment/history" component={AssignmentHistoryPage} />
+          <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} />
           {/* <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} /> */}
           {/* <Redirect exact from="/tabs" to="/tabs/home" /> */}
         </IonRouterOutlet>

@@ -3,5 +3,12 @@ import ASSIGNMENT_API_ENDPOINTS from "./AssignmentEndpoints";
 
 export default {
     createAssignmentService: (details: any) =>
-        doFetch(ASSIGNMENT_API_ENDPOINTS.CREATE_ASSIGNMENT, REQUEST_METHODS.POST, details)
+        doFetch(ASSIGNMENT_API_ENDPOINTS.CREATE_ASSIGNMENT, REQUEST_METHODS.POST, details),
+    fetchAssignmentByTypeService: (details: any) => {
+        let url = `${ASSIGNMENT_API_ENDPOINTS.FETCH_ASSIGNMENT_BY_TYPE}?type=${details.type}`;
+        if (details.search && details.search.trim() !== "") {
+            url += `&search=${encodeURIComponent(details.search)}`;
+        }
+        return doFetch(url, REQUEST_METHODS.GET, details);
+    }
 }

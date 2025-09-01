@@ -13,4 +13,8 @@ export default {
         doFetch(AUTH_API_ENDPOINTS.REGISTER, REQUEST_METHODS.POST, registerDetails),
     forgotPasswordService: (forgotPasswordDetails: any) =>
         doFetch(AUTH_API_ENDPOINTS.FORGOT_PASSWORD, REQUEST_METHODS.POST, forgotPasswordDetails),
+    fetchLoggedUserDetailsByIdService: () =>
+        doFetch(AUTH_API_ENDPOINTS.FETCH_LOGGED_USER_DETAILS, REQUEST_METHODS.GET),
+    updateProfileService: (profileData: any) =>
+        doFetch(AUTH_API_ENDPOINTS.UPDATE_PROFILE, REQUEST_METHODS.POST, profileData)
 }

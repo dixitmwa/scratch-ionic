@@ -26,7 +26,7 @@ const ChipCard = ({
             height: "70px",
             paddingRight: "15px",
             borderRight: rightBorder ? "4px solid #2A97F2" : "",
-        }}>
+        }} key={count}>
             {typeof count !== "undefined" && (
                 <div style={{
                     background: "#FBCC13",

@@ -5,8 +5,14 @@ import { REQUEST_METHODS } from "../api";
 export default {
     createClassroomService: (classDetails: any) =>
         doFetch(CLASSROOM_API_ENDPOINTS.CREATE_CLASSROOM, REQUEST_METHODS.POST, classDetails),
-    fetchAllClassroomsService: () =>
-        doFetch(CLASSROOM_API_ENDPOINTS.FETCH_ALL_CLASSROOMS, REQUEST_METHODS.GET),
+    fetchAllClassroomsService: (search?: string) => {
+        let url = CLASSROOM_API_ENDPOINTS.FETCH_ALL_CLASSROOMS;
+        if (search && search.trim() !== "") {
+            const params = new URLSearchParams({ search });
+            url += `?${params.toString()}`;
+        }
+        return doFetch(url, REQUEST_METHODS.GET);
+    },
     fetchClassroomByIdService: (classId: string) =>
         doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_CLASSROOM_BY_ID}/${classId}`, REQUEST_METHODS.GET),
     fetchSectionByIdService: (sectionId: string) =>

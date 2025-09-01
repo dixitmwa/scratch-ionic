@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IonIcon } from "@ionic/react";
+import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import { useHistory } from "react-router";
 import CustomButton from "../components/common-component/Button";
@@ -36,6 +36,9 @@ const AssignmentCreatePage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [classDivisionData, setClassDivisionData] = useState<any[]>([]);
     const [studentList, setStudentList] = useState<any[]>([]);
+    const [showError, setShowError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
+    const [isLoading, setIsLoading] = useState(false)
     const [classDetails, setClassDetails] = useState({
         class: "",
         division: "",
@@ -82,23 +85,30 @@ const AssignmentCreatePage = () => {
     }
 
     const handleScheduleAssignment = async () => {
+        setIsLoading(true)
+        debugger
         const reqObj = {
-            // title:classDetails.className,
+            title: classDetails.assignmentName,
             description: classDetails.description,
             endDate: classDetails.date,
             classId: selectedOptions.class,
             sectionId: selectedOptions.division,
             studentIds: selected,
+            className: classDetails.className || undefined
             // classDetails,
             // selectedOptions,
             // selected
         }
+        // return
         const response = await AssignmentService.createAssignmentService(reqObj);
         console.log("response", response)
         if (response?.status === 200) {
-            // Handle success
+            setErrorMessage(response?.data?.message)
+            setShowError(true)
+            history.push("/tabs/assignment");
         }
         console.log("-----req", classDetails, selectedOptions, selected)
+        setIsLoading(false)
     }
 
     const fetchStudentByDivision = async () => {
@@ -233,6 +243,7 @@ const AssignmentCreatePage = () => {
                     background="#FF8429"
                     btnText="Schedule"
                     onClick={() => { handleScheduleAssignment() }}
+                    isLoading={isLoading}
                     style={{ marginTop: "10px" }}
                     disable={
                         !classDetails.class ||
@@ -278,6 +289,7 @@ const AssignmentCreatePage = () => {
                     </div>
                 </CommonCard>
             </CommonPopup>
+            <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
         </div>
     )
 }

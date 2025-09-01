@@ -16,5 +16,7 @@ export default {
     fetchLoggedUserDetailsByIdService: () =>
         doFetch(AUTH_API_ENDPOINTS.FETCH_LOGGED_USER_DETAILS, REQUEST_METHODS.GET),
     updateProfileService: (profileData: any) =>
-        doFetch(AUTH_API_ENDPOINTS.UPDATE_PROFILE, REQUEST_METHODS.POST, profileData)
+        doFetch(AUTH_API_ENDPOINTS.UPDATE_PROFILE, REQUEST_METHODS.POST, profileData),
+    fetchAssignmentHistoryService: () =>
+        doFetch(AUTH_API_ENDPOINTS.FETCH_HISTORY_ASSIGNMENTS, REQUEST_METHODS.GET)
 }

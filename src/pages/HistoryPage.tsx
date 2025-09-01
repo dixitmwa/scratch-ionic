@@ -1,8 +1,31 @@
 import { IonIcon } from "@ionic/react";
 import ChipCard from "../components/common-component/ChipCard";
 import View from '../assets/view.svg'
+import { useEffect, useState } from "react";
+import AuthService from "../service/AuthService/AuthService";
 
 const HistoryPage = () => {
+
+    const [assignmentList, setAssignmentList] = useState([{}, {}, {}])
+    const [isLoading, setIsLoading] = useState(false)
+
+    const fetchHistory = async () => {
+        setIsLoading(true)
+        const response = await AuthService.fetchAssignmentHistoryService()
+        if (response?.status === 200) {
+            setAssignmentList(response?.data?.data);
+        }
+        setIsLoading(false)
+    }
+
+    useEffect(() => {
+        fetchHistory()
+
+        return () => {
+            setAssignmentList([])
+        }
+    }, [])
+
     return (
         // <IonPage>
         <div style={{
@@ -15,28 +38,15 @@ const HistoryPage = () => {
             overflowY: "scroll"
         }}>
             {
-                <>
-                    <ChipCard textTransform={true} count={1} title="20-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={2} title="22-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={3} title="24-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={4} title="16-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                    <ChipCard textTransform={true} count={5} title="08-07-2025" rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
-                </>
+                assignmentList.map((item, index) => {
+                    return (
+                        <ChipCard textTransform={true} count={index + 1} title={item.title} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
+                    )
+                })
             }
-        </div >
+        </div>
         // </IonPage>
     )
 }
 
-export default HistoryPage; 
+export default HistoryPage;

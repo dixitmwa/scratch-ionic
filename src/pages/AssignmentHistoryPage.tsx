@@ -8,10 +8,11 @@ import SearchInput from "../components/common-component/SearchInput";
 import AssignmentService from "../service/AssignmentService/AssignmentService";
 import { Preferences } from "@capacitor/preferences";
 import Loader from "../components/common-component/Loader";
+import { useSection } from "../context/SectionContext";
 
 const AssignmentHistoryPage = () => {
     const history = useHistory()
-
+    const { setSectionId } = useSection();
     const [assignmentList, setAssignmentList] = useState([])
     const [inputValue, setInputValue] = useState("");
     const [isLoading, setIsLoading] = useState(true);
@@ -26,9 +27,9 @@ const AssignmentHistoryPage = () => {
         setSearchTimeout(timeout);
     };
 
-    const handleViewDetails = async (item: any) => {
-        await Preferences.set({ key: "assignmentId", value: item._id });
-        history.push("/tabs/assignment/details")
+    const handleViewDetails = (item: any) => {
+        setSectionId(item.id);
+        history.push("/tabs/assignment/details");
     }
 
     const fetchHistoryAssignment = async (search: string = "") => {
@@ -39,9 +40,9 @@ const AssignmentHistoryPage = () => {
         }
         const response = await AssignmentService.fetchAssignmentByTypeService(params);
         if (response?.status === 200) {
-            setAssignmentList(response?.data?.data)
+            setAssignmentList(response?.data?.data);
         }
-        setIsLoading(true);
+        setIsLoading(false);
     }
 
     useEffect(() => {
@@ -113,6 +114,7 @@ const AssignmentHistoryPage = () => {
                 </>
             </div>
         )
+    )
 }
 
 export default AssignmentHistoryPage;

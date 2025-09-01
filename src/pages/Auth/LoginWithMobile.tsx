@@ -24,7 +24,7 @@ const LoginWithMobile = () => {
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
-        setUserType(value || "student");
+        setUserType(value?.toLowerCase() || "student");
     };
 
     useIonViewWillEnter(() => {
@@ -58,7 +58,7 @@ const LoginWithMobile = () => {
             setMessageDetails(response?.data?.message)
         } else {
             await Preferences.set({ key: 'auth', value: response?.data?.data?.token })
-            await Preferences.set({ key: 'userType', value: response?.data?.data?.role })
+            await Preferences.set({ key: 'userType', value: response?.data?.data?.role?.toLowerCase() })
             setTimeout(() => {
                 // router.push("/login-method", "forward");
                 history.push("/tabs/editor")

@@ -5,6 +5,7 @@ const AUTH_API_ENDPOINTS = {
     REGISTER: "/Auth/Signup",
     FORGOT_PASSWORD: "/Auth/ResetPassword",
     FETCH_LOGGED_USER_DETAILS: "/Auth/GetProfileDetails",
-    UPDATE_PROFILE: "/Auth/UpdateProfile"
+    UPDATE_PROFILE: "/Auth/UpdateProfile",
+    FETCH_HISTORY_ASSIGNMENTS: "/Project/FetchProjectHistory"
 };
 export default AUTH_API_ENDPOINTS;

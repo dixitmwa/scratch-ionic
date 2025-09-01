@@ -125,7 +125,7 @@ const ProfilePage = () => {
 
     const fetchUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" })
-        if (value === "student") {
+        if (value?.toLowerCase() === "student") {
             setIsStudent(true)
         } else {
             setIsStudent(false)

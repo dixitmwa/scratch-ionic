@@ -3,55 +3,75 @@ import BackArrow from "../assets/left_arrow.svg";
 import { useHistory } from "react-router";
 import ChipCard from "../components/common-component/ChipCard";
 import View from "../assets/view.svg";
-import { useState } from "react";
-import SearchInput from "../components/common-component/SearchInput";
+import { useEffect, useState } from "react";
+import AuthService from "../service/AuthService/AuthService";
+import Loader from "../components/common-component/Loader";
 
 const MyLibraryPage = () => {
     const history = useHistory()
-    const [assignmentList, setAssignmentList] = useState([{}, {}, {}])
-    const [inputValue, setInputValue] = useState("");
-    const handleSearch = () => {
+    const [assignmentList, setAssignmentList] = useState([])
+    const [isLoading, setIsLoading] = useState(false)
 
+    const fetchHistory = async () => {
+        setIsLoading(true)
+        const response = await AuthService.fetchAssignmentHistoryService()
+        if (response?.status === 200) {
+            setAssignmentList(response?.data?.data);
+        }
+        setIsLoading(false)
     }
+
+    useEffect(() => {
+      fetchHistory()
+
+      return () => {
+        setAssignmentList([])
+      }
+    }, [])
+
+
     return (
-        <div style={{
-            margin: "6vh 10px 10px 10px",
-            display: "flex",
-            gap: "10px",
-            flexWrap: "wrap",
-            justifyContent: "center",
-            maxHeight: "79vh",
-            overflowY: "scroll"
-        }}>
-            <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>
-                <div style={{
-                    padding: "0px 10px",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center"
-                }}>
-                    <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/editor") }} />
-                    <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", margin: "0px", textAlign: "center" }}>My Library</p>
-                    {/* <SearchInput
+        isLoading ? (
+            <Loader />
+        ) : (
+            <div style={{
+                margin: "6vh 10px 10px 10px",
+                display: "flex",
+                gap: "10px",
+                flexWrap: "wrap",
+                justifyContent: "center",
+                maxHeight: "79vh",
+                overflowY: "scroll"
+            }}>
+                <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>
+                    <div style={{
+                        padding: "0px 10px",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
+                    }}>
+                        <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/editor") }} />
+                        <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", margin: "0px", textAlign: "center" }}>My Library</p>
+                        {/* <SearchInput
                         value={inputValue}
                         onChange={e => setInputValue(e.target.value)}
                         onSearch={handleSearch}
                     /> */}
-                    <div style={{ width: "32px" }}></div>
+                        <div style={{ width: "32px" }}></div>
+                    </div>
                 </div>
-            </div>
-            <>
-                {
-                    assignmentList.map((item, index) => {
-                        return (
-                            <ChipCard textTransform={true} count={index + 1} title={
-                                <div style={{ display: "flex", flexDirection: "column" }}>
-                                    <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>Animal</p>
-                                </div>} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/classroom/details") }} />} />
-                        )
-                    })
-                }
-                {/* <ChipCard textTransform={true} count={2}
+                <>
+                    {
+                        assignmentList.map((item:any, index) => {
+                            return (
+                                <ChipCard textTransform={true} count={index + 1} title={
+                                    <div style={{ display: "flex", flexDirection: "column" }}>
+                                        <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item?.title}</p>
+                                    </div>} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/classroom/details") }} />} />
+                            )
+                        })
+                    }
+                    {/* <ChipCard textTransform={true} count={2}
                     title={
                         <div style={{ display: "flex", flexDirection: "column" }}>
                             <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>Environment</p>
@@ -59,8 +79,9 @@ const MyLibraryPage = () => {
                             <p style={{ margin: "0px", fontSize: "16px" }}>12 students submitted</p>
                         </div>
                     } icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/classroom/details") }} />} /> */}
-            </>
-        </div>
+                </>
+            </div>
+        )
     )
 }
 

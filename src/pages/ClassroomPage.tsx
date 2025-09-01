@@ -10,6 +10,7 @@ import SearchInput from "../components/common-component/SearchInput";
 import ClassRoomService from "../service/ClassroomService/ClassRoomService";
 import { Preferences } from "@capacitor/preferences";
 import Loader from "../components/common-component/Loader";
+import { useSection } from "../context/SectionContext";
 
 const ClassroomPage = () => {
     const history = useHistory();
@@ -36,9 +37,9 @@ const ClassroomPage = () => {
         setIsLoading(false);
     }
 
-    const navigateToDetails = async (sectionId: string) => {
-        console.log('sectionId', sectionId)
-        await Preferences.set({ key: "sectionId", value: sectionId });
+    const { setSectionId } = useSection();
+    const navigateToDetails = (sectionId: string) => {
+        setSectionId(sectionId);
         history.push(`/tabs/classroom/details`);
     }
 

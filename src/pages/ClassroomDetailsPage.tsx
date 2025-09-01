@@ -13,6 +13,7 @@ import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
 interface Student {
     id: number;
     name: string;
+    mobileNumber?: string;
 }
 
 interface ClassDetails {
@@ -21,6 +22,8 @@ interface ClassDetails {
     division: string;
     className?: string;
     classNumber?: string;
+    classId?: string;
+    id?: string;
 }
 import CommonInput from "../components/common-component/Input";
 import CommonPopup from "../components/common-component/Popup";
@@ -28,14 +31,16 @@ import CommonCard from "../components/common-component/Card";
 import Plus from "../assets/plus.svg"
 import { Preferences } from "@capacitor/preferences";
 import Loader from "../components/common-component/Loader";
+import { useSection } from "../context/SectionContext";
 
 const ClassroomDetailsPage = () => {
     const history = useHistory()
-    const [classDetail, setClassDetail] = useState<ClassDetails>({});
+    const [classDetail, setClassDetail] = useState<ClassDetails>({ name: '', number: '', division: '' });
     const [selectedStudentList, setSelectedStudentList] = useState<number[]>([]);
     const [inputValue, setInputValue] = useState("");
     const [isEdit, setIsEdit] = useState(false);
-    const [selectedStudentId, setSelectedStudentId] = useState<number | null>(null);
+    const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+    // const [selectedStudentDetail, setSelectedStudentDetail] = useState<Student | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
@@ -47,7 +52,9 @@ const ClassroomDetailsPage = () => {
         division: ""
     });
     const [studentList, setStudentList] = useState<Student[]>([]);
+
     const [studentProjects, setStudentProjects] = useState<any[]>([]);
+    const { sectionId, setSectionId } = useSection();
 
     console.log("classDetail", classDetail, selectedStudentList, classDetails, studentList)
     const handleSearch = () => {
@@ -66,14 +73,18 @@ const ClassroomDetailsPage = () => {
 
     const fetchClassroomDetail = async () => {
         setIsLoading(true);
-        const { value } = await Preferences.get({ key: "sectionId" });
-        console.log('value', value)
-        debugger
-        const response = await ClassRoomService.fetchSectionByIdService(value);
+        console.log("sectionId", sectionId);
+        if (!sectionId) {
+            setIsLoading(false);
+            setShowError(true);
+            setErrorMessage("No section selected");
+            return;
+        }
+        const response = await ClassRoomService.fetchSectionByIdService(sectionId);
         if (response?.status === 200) {
             setClassDetail(response?.data?.data);
             await fetchStudents();
-            const studentResponse = await CodeLinkService.fetchStudentsByDivisionService({ sectionId: value });
+            const studentResponse = await CodeLinkService.fetchStudentsByDivisionService({ sectionId });
             if (studentResponse?.status === 200) {
                 const selectedStudentIds = studentResponse?.data?.data?.map((student: Student) => student.id) || [];
                 setSelectedStudentList(selectedStudentIds);
@@ -116,12 +127,12 @@ const ClassroomDetailsPage = () => {
         selectStudentModalRef.current?.dismiss();
     }
 
-    const showStudentProject = async (studentId: number) => {
+    const showStudentProject = async (student: Student) => {
         debugger
-        const response = await ClassRoomService.fetchStudentProjectsService(studentId.toString());
+        const response = await ClassRoomService.fetchStudentProjectsService(student.id.toString());
         if (response?.status === 200) {
             setStudentProjects(response?.data?.data || []);
-            setSelectedStudentId(studentId);
+            setSelectedStudent(student);
         }
     }
 
@@ -144,8 +155,8 @@ const ClassroomDetailsPage = () => {
             }}>
                 <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", width: "100%" }}>
-                        <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { !isEdit ? !selectedStudentId ? history.push("/tabs/classroom") : setSelectedStudentId(null) : setIsEdit(false) }} />
-                        {!isEdit && !selectedStudentId && (
+                        <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { !isEdit ? !selectedStudent ? history.push("/tabs/classroom") : setSelectedStudent(null) : setIsEdit(false) }} />
+                        {!isEdit && !selectedStudent && (
                             <>
                                 <SearchInput
                                     value={inputValue}
@@ -156,11 +167,11 @@ const ClassroomDetailsPage = () => {
                             </>
                         )}
                         {
-                            selectedStudentId && (
+                            selectedStudent && (
                                 <>
                                     <div>
-                                        <p style={{ color: "#607E9C", fontSize: "24px", fontWeight: "bold", marginBottom: "0px", marginTop: "0px" }}>Lara Simmons</p>
-                                        <p style={{ color: "#607E9C", textAlign: "center", fontSize: "18px", marginBottom: "0px", marginTop: "0px" }}>+1 98765 43210</p>
+                                        <p style={{ color: "#607E9C", fontSize: "24px", fontWeight: "bold", marginBottom: "0px", marginTop: "0px", textAlign: "center" }}>{selectedStudent.name}</p>
+                                        <p style={{ color: "#607E9C", textAlign: "center", fontSize: "18px", marginBottom: "0px", marginTop: "0px" }}>{selectedStudent.mobileNumber}</p>
                                     </div>
                                     <div style={{ width: "28px" }}></div>
                                 </>
@@ -252,25 +263,29 @@ const ClassroomDetailsPage = () => {
                         </div>
                         <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
                     </>
-                    ) : selectedStudentId ? (<>
+                    ) : selectedStudent ? (<>
                         {
-                            studentProjects?.map((project, index) => (
-                                <ChipCard
-                                    key={index}
-                                    count={index + 1}
-                                    title={project.title || "test"}
-                                    rightBorder={project.isSubmitted}
-                                    icon={
-                                        <IonIcon
-                                            icon={View}
-                                            color="primary"
-                                            style={{ fontSize: '32px' }}
-                                        // onClick={() => { showStudentProject(student.id) }}
-                                        />
-                                    }
-                                // onClick={() => { /* Handle project click */ }}
-                                />
-                            ))
+                            studentProjects && studentProjects.length > 0 ? (
+                                studentProjects.map((project, index) => (
+                                    <ChipCard
+                                        key={index}
+                                        count={index + 1}
+                                        title={project.title || "test"}
+                                        rightBorder={project.isSubmitted}
+                                        icon={
+                                            <IonIcon
+                                                icon={View}
+                                                color="primary"
+                                                style={{ fontSize: '32px' }}
+                                            />
+                                        }
+                                    />
+                                ))
+                            ) : (
+                                <div style={{ width: '100%', textAlign: 'center', color: '#607E9C', marginTop: '32px', fontSize: '20px', fontWeight: 500 }}>
+                                    No project found
+                                </div>
+                            )
                         }
                     </>)
                         : (<>
@@ -279,14 +294,13 @@ const ClassroomDetailsPage = () => {
                                 <p style={{ color: "#607E9C", fontSize: "16px", fontWeight: "bold", marginBottom: "20px", marginTop: "20px" }}>{selectedStudentList?.length} students</p>
                             </div>
                             {
-                                // Filter studentList to only include selected students and map through them
                                 studentList
                                     ?.filter(student => selectedStudentList.includes(student.id))
-                                    ?.map((student) => (
+                                    ?.map((student, index) => (
                                         <ChipCard
                                             key={student.id}
                                             textTransform={true}
-                                            count={1}
+                                            count={index + 1}
                                             title={
                                                 <div style={{ display: "flex", flexDirection: "column" }}>
                                                     <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{student.name}</p>
@@ -297,7 +311,7 @@ const ClassroomDetailsPage = () => {
                                                     icon={View}
                                                     color="primary"
                                                     style={{ fontSize: '32px' }}
-                                                    onClick={() => { showStudentProject(student.id) }}
+                                                    onClick={() => { showStudentProject(student) }}
                                                 />
                                             }
                                         />

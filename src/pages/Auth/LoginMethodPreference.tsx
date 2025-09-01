@@ -11,7 +11,7 @@ const LoginMethodPreference = () => {
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
-        setUserType(value || "student");
+        setUserType(value?.toLowerCase() || "student");
     };
 
     useIonViewWillEnter(() => {

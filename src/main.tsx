@@ -1,4 +1,5 @@
 import React from 'react';
+import { SectionProvider } from './context/SectionContext';
 import ReactDOM from 'react-dom';
 import App from './App';
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
@@ -16,7 +17,9 @@ defineCustomElements(window);
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <SectionProvider>
+        <App />
+    </SectionProvider>
   </React.StrictMode>,
   document.getElementById('root')
 );

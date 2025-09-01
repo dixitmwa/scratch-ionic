@@ -43,7 +43,7 @@ const TabsLayout = () => {
   const fetchUserType = async () => {
     const { value } = await Preferences.get({ key: "userType" })
     console.log("value", value)
-    if (value === "student") {
+    if (value?.toLowerCase() === "student") {
       setIsStudent(true)
     } else {
       setIsStudent(false)

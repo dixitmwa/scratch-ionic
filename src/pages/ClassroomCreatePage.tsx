@@ -3,6 +3,7 @@ import CommonInput from "../components/common-component/Input";
 import CustomButton from "../components/common-component/Button";
 import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
+import BackArrowWhite from "../assets/left_arrow_white.svg"
 import Plus from "../assets/plus.svg"
 import PlusGray from "../assets/plus_gray.svg"
 import CommonPopup from "../components/common-component/Popup";
@@ -127,7 +128,34 @@ const ClassroomCreatePage = () => {
                     />
                 </div>
                 <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
-                    <CommonCard headerText="Select students">
+                    <CommonCard
+                        headerText={
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                background: "#29B0FF",
+                                borderTopLeftRadius: "12px",
+                                borderTopRightRadius: "12px",
+                                padding: "10px 16px"
+                            }}>
+                                <IonIcon
+                                    icon={BackArrowWhite}
+                                    style={{ fontSize: "20px", color: "#fff", cursor: "pointer", marginRight: "12px", height: "20px", width: "20px" }}
+                                    onClick={() => handleCloseModal()}
+                                />
+                                <span style={{
+                                    color: "#fff",
+                                    fontWeight: "bold",
+                                    fontSize: "20px",
+                                    letterSpacing: "1px"
+                                }}>
+                                    SELECT STUDENTS
+                                </span>
+                                <div style={{ width: "32px" }}></div>
+                            </div>
+                        }
+                    >
                         <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
                             {studentList?.map((person) => {
                                 console.log("peopleinside", person)

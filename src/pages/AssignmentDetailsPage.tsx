@@ -1,6 +1,6 @@
 import { IonIcon } from "@ionic/react";
 import SearchInput from "../components/common-component/SearchInput";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import BackArrow from "../assets/left_arrow.svg";
 import { useHistory } from "react-router";
 import ChipCard from "../components/common-component/ChipCard";
@@ -11,24 +11,54 @@ import PlayArrow from "../assets/play.svg";
 import RightArrow from "../assets/right_arrow_double.svg";
 import CustomButton from "../components/common-component/Button";
 import Loader from "../components/common-component/Loader";
+import AssignmentService from "../service/AssignmentService/AssignmentService";
 
 const AssignmentDetailsPage = () => {
     const { sectionId } = useSection();
-    console.log("assignmentId from context:", sectionId);
     const history = useHistory();
     const [inputValue, setInputValue] = useState("");
-    const [assignmentDetails, setAssignmentDetails] = useState([{}, {}]);
+    const [assignmentDetails, setAssignmentDetails] = useState<any>({});
+    const [filteredAssignments, setFilteredAssignments] = useState<any[]>([]);
     const [showDetails, setShowDetails] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [selectedAnswer, setSelectedAnswer] = useState<"correct" | "wrong" | null>(null);
-    const handleSearch = (val?: string) => { }
+    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+    const searchTimeout = useRef<NodeJS.Timeout | null>(null);
 
     const fetchAssignmentDetails = async () => {
         setIsLoading(true);
+        const response = await AssignmentService.fetchAssignmentByIdService(sectionId);
+        if (response?.status === 200) {
+            setAssignmentDetails(response?.data?.data);
+            setFilteredAssignments(response?.data?.data?.assignments || []);
+        }
         setIsLoading(false);
-    }
+    };
 
-    const handleViewDetails = (item: any) => {
+    useEffect(() => {
+        if (!assignmentDetails.assignments) return;
+        if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        searchTimeout.current = setTimeout(() => {
+            const search = inputValue.trim().toLowerCase();
+            if (search === "") {
+                setFilteredAssignments(assignmentDetails.assignments);
+            } else {
+                setFilteredAssignments(
+                    assignmentDetails.assignments.filter((item: any) =>
+                        item?.name?.toLowerCase().includes(search)
+                    )
+                );
+            }
+        }, 1000);
+        return () => {
+            if (searchTimeout.current) clearTimeout(searchTimeout.current);
+        };
+    }, [inputValue, assignmentDetails.assignments]);
+
+    const handleViewDetails = (item: any, idx: number) => {
+        setSelectedItem(item);
+        setSelectedIndex(idx);
         setShowDetails(true);
     }
 
@@ -37,9 +67,39 @@ const AssignmentDetailsPage = () => {
         setSelectedAnswer(answer);
     }
 
+    const handlePrev = () => {
+        debugger
+        if (selectedIndex !== null && selectedIndex > 0) {
+            const prevIndex = selectedIndex - 1;
+            setSelectedIndex(prevIndex);
+            setSelectedItem(assignmentDetails.assignments[prevIndex]);
+        }
+    };
+
+    const handleNext = () => {
+        if (
+            selectedIndex !== null &&
+            assignmentDetails.assignments &&
+            selectedIndex < assignmentDetails.assignments.length - 1
+        ) {
+            const nextIndex = selectedIndex + 1;
+            setSelectedIndex(nextIndex);
+            setSelectedItem(assignmentDetails.assignments[nextIndex]);
+        }
+    };
+
     useEffect(() => {
         fetchAssignmentDetails();
     }, [])
+
+    function formatDate(dateString: string) {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        return `${day}-${month}-${year}`;
+    }
 
     return (
         isLoading ? (
@@ -62,18 +122,21 @@ const AssignmentDetailsPage = () => {
                         alignItems: "center"
                     }}>
                         <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { showDetails ? setShowDetails(false) : history.push("/tabs/assignment/history") }} />
-                        {/* <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", margin: "0px", textAlign: "center" }}>Create New Assignment</p> */}  
                         {
                             showDetails ? (
                                 <div>
-                                    <p style={{ color: "#607E9C", fontSize: "24px", fontWeight: "bold", marginBottom: "0px", marginTop: "0px" }}>Lara Simmons</p>
-                                    <p style={{ color: "#607E9C", textAlign: "center", fontSize: "18px", marginBottom: "0px", marginTop: "0px" }}>+1 98765 43210</p>
+                                    <p style={{ color: "#607E9C", fontSize: "24px", fontWeight: "bold", marginBottom: "0px", marginTop: "0px", textAlign: "center" }}>
+                                        {selectedItem?.name || ""}
+                                    </p>
+                                    <p style={{ color: "#607E9C", textAlign: "center", fontSize: "18px", marginBottom: "0px", marginTop: "0px" }}>
+                                        {selectedItem?.mobileNumber || ""}
+                                    </p>
                                 </div>
                             ) : (
                                 <SearchInput
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
-                                    onSearch={() => handleSearch()}
+                                    onSearch={() => {}} // debounced, so no need to call here
                                 />
                             )
                         }
@@ -84,15 +147,41 @@ const AssignmentDetailsPage = () => {
                     {
                         !showDetails ? (
                             <>
-                                {assignmentDetails.map((item: any, index: number) => (
-                                    <ChipCard textTransform={true} count={index + 1} title={
-                                        <div style={{ display: "flex", flexDirection: "column" }}>
-                                            <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item?.title}</p>
-                                            <p style={{ margin: "0px", fontSize: "16px" }}>Class : 4A</p>
-                                            <p style={{ margin: "0px", fontSize: "16px" }}>12 students submitted</p>
-                                        </div>
-                                    } icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />} />
+                                {filteredAssignments.map((item: any, index: number) => (
+                                    <ChipCard
+                                        textTransform={true}
+                                        count={index + 1}
+                                        title={
+                                            <div style={{ display: "flex", flexDirection: "column" }}>
+                                                <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item?.name}</p>
+                                                <p
+                                                    style={{
+                                                        margin: "0px",
+                                                        fontSize: "16px",
+                                                        color: item?.submittedDate ? "#607E9C" : "#FF297A"
+                                                    }}
+                                                >
+                                                    {item?.submittedDate ? `Submitted date : ${formatDate(item?.submittedDate)}` : "Not Submitted"}
+                                                </p>
+                                            </div>
+                                        }
+                                        icon={
+                                            <IonIcon
+                                                icon={View}
+                                                color="primary"
+                                                style={{ fontSize: '32px' }}
+                                                onClick={() => { handleViewDetails(item, index) }}
+                                            />
+                                        }
+                                        onClick={() => { handleViewDetails(item, index) }}
+                                    />
+
                                 ))}
+                                {filteredAssignments.length === 0 && (
+                                    <div style={{ width: '100%', textAlign: 'center', color: '#607E9C', marginTop: '32px', fontSize: '20px', fontWeight: 500 }}>
+                                        No assignments found
+                                    </div>
+                                )}
                             </>
                         ) : (
                             <div style={{
@@ -107,8 +196,8 @@ const AssignmentDetailsPage = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                             }}>
-                                <CustomButton btnText="" icon={<IonIcon icon={LeftArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} />
-                                <CustomButton btnText="" icon={<IonIcon icon={RightArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} />
+                                <CustomButton btnText="" icon={<IonIcon icon={LeftArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} onClick={handlePrev} />
+                                <CustomButton btnText="" icon={<IonIcon icon={RightArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} onClick={handleNext} />
                                 <div style={{
                                     background: '#fff',
                                     borderRadius: '16px',

@@ -10,5 +10,9 @@ export default {
             url += `&search=${encodeURIComponent(details.search)}`;
         }
         return doFetch(url, REQUEST_METHODS.GET, details);
+    },
+    fetchAssignmentByIdService: (id: string) => {
+        const url = `${ASSIGNMENT_API_ENDPOINTS.FETCH_ASSIGNMENT_BY_ID}/${id}`;
+        return doFetch(url, REQUEST_METHODS.GET);
     }
 }

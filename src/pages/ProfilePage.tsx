@@ -1,6 +1,6 @@
-import { IonIcon, IonModal, IonPage, IonToast, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from "@ionic/react";
+import { IonIcon, IonToast, useIonRouter, useIonViewDidEnter } from "@ionic/react";
 import ChipCard from "../components/common-component/ChipCard";
-import { arrowForwardOutline, volumeLowOutline, exitOutline, helpOutline, bookOutline, documentTextOutline, logOutOutline } from "ionicons/icons";
+import BackArrowWhite from "../assets/left_arrow_white.svg"
 import { profileConstant } from "../constant/Constant";
 import { useEffect, useRef, useState } from "react";
 import CommonModal from "../components/common-component/Modal";
@@ -101,6 +101,7 @@ const ProfilePage = () => {
     }
 
     const handleCloseModal = () => {
+        setIsModalOpen(false);
         logoutModalRef.current?.dismiss();
     }
 
@@ -109,14 +110,14 @@ const ProfilePage = () => {
     }
 
     const handleLogOut = async () => {
-        setLoadingLogOut(true)
-        // await logout();
+        setLoadingLogOut(true);
         await Preferences.clear();
         setTimeout(() => {
+            setIsModalOpen(false);
             logoutModalRef.current?.dismiss();
-            history.push('/login')
-        }, 1500)
-    }
+            history.push('/login');
+        }, 1500);
+    };
 
     const handleBack = () => {
         setNewCodeGenerate(false)
@@ -196,13 +197,8 @@ const ProfilePage = () => {
     }
 
     useIonViewDidEnter(() => {
-        fetchUserType()
-    })
-
-    useEffect(() => {
-        fetchUserType()
-    }, [])
-
+        fetchUserType();
+    });
     useEffect(() => {
         if (!selectedClass) {
             fetchStudentByDivision()
@@ -335,28 +331,12 @@ const ProfilePage = () => {
                                                 textHeader="Class"
                                                 value={userDetails.classNumber}
                                                 onChange={(val: any) => setProfileData({ ...profileData, className: val })}
-                                                options={[
-                                                    "5th",
-                                                    "6th",
-                                                    "7th",
-                                                    "8th",
-                                                    "9th",
-                                                    "10th",
-                                                    "11th",
-                                                    "12th"
-                                                ]}
                                                 disabled={true}
                                             />
                                             <CustomDropdown
                                                 textHeader="Section"
-                                                value={userDetails?.section}
+                                                value={userDetails?.sectionName}
                                                 onChange={(val: any) => setProfileData({ ...profileData, section: val })}
-                                                options={[
-                                                    "A",
-                                                    "B",
-                                                    "C",
-                                                    "D",
-                                                ]}
                                                 disabled={true}
                                             />
                                         </div>
@@ -407,7 +387,34 @@ const ProfilePage = () => {
             </CommonPopup>
 
             <CommonPopup isOpen={isClassModalOpen} setIsOpen={setIsClassModalOpen} modalRef={classModalRef}>
-                <CommonCard headerText="Select students">
+                <CommonCard
+                    headerText={
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            background: "#29B0FF",
+                            borderTopLeftRadius: "12px",
+                            borderTopRightRadius: "12px",
+                            padding: "10px 16px"
+                        }}>
+                            <IonIcon
+                                icon={BackArrowWhite}
+                                style={{ fontSize: "20px", color: "#fff", cursor: "pointer", marginRight: "12px", height: "20px", width: "20px" }}
+                                onClick={() => handleCloseClassModal()}
+                            />
+                            <span style={{
+                                color: "#fff",
+                                fontWeight: "bold",
+                                fontSize: "20px",
+                                letterSpacing: "1px"
+                            }}>
+                                SELECT STUDENTS
+                            </span>
+                            <div style={{ width: "32px" }}></div>
+                        </div>
+                    }
+                >
                     <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
                         {studentList?.map((person) => {
                             const isSelected = selected.includes(person.id);
@@ -429,13 +436,11 @@ const ProfilePage = () => {
                                     }}
                                 >
                                     <span style={{ fontWeight: 500 }}>{person.name}</span>
-                                    {/* {!isSelected && <IonIcon icon={PlusGray} style={{ fontSize: '18px', height: "18px", width: "18px" }} color="danger" />} */}
                                 </div>
                             );
                         })}
                     </div>
                     <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "10px" }}>
-                        {/* <CustomButton btnText="Close" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} /> */}
                         <CustomButton btnText="Save" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseClassModal() }} />
                     </div>
                 </CommonCard>

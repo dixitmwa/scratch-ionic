@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 import SearchInput from "../components/common-component/SearchInput";
 import AssignmentService from "../service/AssignmentService/AssignmentService";
 import Loader from "../components/common-component/Loader";
+import { useSection } from "../context/SectionContext";
 
 const AssignmentUpcomingPage = () => {
     const history = useHistory()
-
+    const { setSectionId } = useSection();
     const [assignmentList, setAssignmentList] = useState([{}, {}, {}])
     const [inputValue, setInputValue] = useState("");
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
@@ -24,6 +25,11 @@ const AssignmentUpcomingPage = () => {
         }, 400);
         setSearchTimeout(timeout);
     };
+
+    const handleViewDetails = (item: any) => {
+        setSectionId(item.id);
+        history.push("/tabs/assignment/details");
+    }
 
     const fetchUpcomingAssignment = async (search: string = "") => {
         setIsLoading(true);
@@ -90,10 +96,29 @@ const AssignmentUpcomingPage = () => {
                             return (
                                 <ChipCard textTransform={true} count={index + 1} title={
                                     <div style={{ display: "flex", flexDirection: "column" }}>
-                                        <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item?.title}</p>
-                                        <p style={{ margin: "0px", fontSize: "16px" }}>Class : 4A</p>
-                                        <p style={{ margin: "0px", fontSize: "16px" }}>12 students submitted</p>
-                                    </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/assignment/details") }} />} />
+                                        <p
+                                            style={{
+                                                margin: "0px",
+                                                fontWeight: 600,
+                                                fontSize: "20px",
+                                                whiteSpace: "nowrap",
+                                                overflow: "hidden",
+                                                textOverflow: "ellipsis",
+                                                maxWidth: "180px"
+                                            }}
+                                        >
+                                            {item?.title}
+                                        </p>
+                                        <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
+                                        <p style={{
+                                            margin: "0px",
+                                            fontSize: "16px",
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            maxWidth: "180px"
+                                        }}>{item?.totalStudentsAssigned}/{item?.submittedCount} students submitted</p>
+                                    </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />} />
                             )
                         })
                     }

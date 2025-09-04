@@ -7,10 +7,23 @@ import { DocumentScanner } from "capacitor-document-scanner";
 import { Capacitor } from "@capacitor/core";
 import { PDFDocument } from "pdf-lib";
 import { Preferences } from "@capacitor/preferences";
+import { useSection } from "../context/SectionContext";
+import ClassRoomService from "../service/ClassroomService/ClassRoomService";
 
 const ProjectDetailsPage = () => {
     const history = useHistory()
-    const [loading, setLoading] = useState(false);;
+    const { projectId } = useSection();
+    const [projectDetails, setProjectDetails] = useState<any>(null);
+    const [loading, setLoading] = useState(false);
+    console.log("projectId", projectId)
+
+    const fetchProjectDetail = async ()=>{
+        const response = await ClassRoomService.fetchProjectDetailByIdService(projectId);
+        if (response?.status === 200) {
+            console.log("Project Details:", response?.data?.data);
+            setProjectDetails(response?.data?.data);
+        }
+    }
 
     const scanDocument = async () => {
         setLoading(true);
@@ -102,16 +115,18 @@ const ProjectDetailsPage = () => {
     };
 
     useEffect(() => {
+        fetchProjectDetail();
         return () => {
-            document.querySelector(".project-details-content")?.remove();
+            // document.querySelector(".project-details-content")?.remove();
         };
     }, []);
 
-    useIonViewDidLeave(() => {
-        document.querySelector(".project-details-content")?.remove();
-    })
+    // useIonViewDidLeave(() => {
+    //     document.querySelector(".project-details-content")?.remove();
+    // })
 
     return (
+        // projectId is available here for fetching project details
         <div className="project-details-content" style={{
             margin: "6vh 0px 10px 0px",
             display: "flex",
@@ -139,7 +154,7 @@ const ProjectDetailsPage = () => {
                             marginTop: "0px",
                             marginBottom: "0px"
                         }}>
-                            Project
+                            {projectDetails?.title}
                         </p>
                         <p style={{
                             fontSize: "18px",
@@ -148,7 +163,13 @@ const ProjectDetailsPage = () => {
                             marginTop: "0px",
                             marginBottom: "0px"
                         }}>
-                            Last date : 01-08-2025
+                            Last date : {projectDetails?.endDate ? (() => {
+                                const d = new Date(projectDetails.endDate);
+                                const day = String(d.getDate()).padStart(2, '0');
+                                const month = String(d.getMonth() + 1).padStart(2, '0');
+                                const year = d.getFullYear();
+                                return `${day}-${month}-${year}`;
+                            })() : "-"}
                         </p>
                     </div>
                     <div style={{ width: "32px" }}></div>
@@ -168,7 +189,7 @@ const ProjectDetailsPage = () => {
                 width: "100%",
                 overflowY: "scroll",
             }}>
-                <div>
+                <div style={{ width: "100%" }}>
                     <h3 style={{ color: "#607E9C" }}>Description</h3>
                     <div style={{
                         border: "1px solid #607E9C",
@@ -178,13 +199,20 @@ const ProjectDetailsPage = () => {
                         color: "#607E9C",
                         fontSize: "18px"
                     }}>
-                        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-                        eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-                        ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-                        aliquip ex ea commodo consequat.
+                        {projectDetails?.description}
                     </div>
                 </div>
-                <CustomButton btnText="START SCANNING" background="#FF8429" onClick={() => { scanDocument() }} />
+                <CustomButton
+                    btnText="START SCANNING"
+                    background="#FF8429"
+                    onClick={() => { scanDocument() }}
+                    disable={
+                        !!projectDetails && (
+                            projectDetails.isSubmitted ||
+                            (projectDetails.endDate && new Date() > new Date(projectDetails.endDate))
+                        )
+                    }
+                />
             </div>
         </div>
     );

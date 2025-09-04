@@ -51,7 +51,7 @@ const MyLibraryPage = () => {
                         alignItems: "center"
                     }}>
                         <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/editor") }} />
-                        <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", margin: "0px", textAlign: "center" }}>My Library</p>
+                        <p style={{ color: "#29B0FF", fontSize: "20px", fontWeight: "bold", margin: "0px", textAlign: "center" }}>My Library</p>
                         {/* <SearchInput
                         value={inputValue}
                         onChange={e => setInputValue(e.target.value)}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
+import BackArrowWhite from "../assets/left_arrow_white.svg";
 import { useHistory } from "react-router";
 import CustomButton from "../components/common-component/Button";
 import Radio from "../assets/radio.svg"
@@ -11,23 +12,6 @@ import CommonCard from "../components/common-component/Card";
 import Plus from "../assets/plus.svg"
 import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
 import AssignmentService from "../service/AssignmentService/AssignmentService";
-
-const people = [
-    { id: 1, name: "John Wordan" },
-    { id: 2, name: "Hethu Jackson" },
-    { id: 3, name: "Alice Johnson" },
-    { id: 4, name: "Michael Smith" },
-    { id: 5, name: "Emily Davis" },
-    { id: 6, name: "David Brown" },
-    { id: 7, name: "Sarah Wilson" },
-    { id: 8, name: "James Taylor" },
-    { id: 9, name: "Sophia Miller" },
-    { id: 10, name: "Daniel Anderson" },
-    { id: 11, name: "Daniel Anderson" },
-    { id: 12, name: "Daniel Anderson" },
-    { id: 13, name: "Daniel Anderson" },
-    { id: 14, name: "Daniel Anderson" },
-];
 
 const AssignmentCreatePage = () => {
     const history = useHistory()
@@ -256,7 +240,34 @@ const AssignmentCreatePage = () => {
                 />
             </div>
             <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
-                <CommonCard headerText="Select students">
+                <CommonCard
+                    headerText={
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            background: "#29B0FF",
+                            borderTopLeftRadius: "12px",
+                            borderTopRightRadius: "12px",
+                            padding: "10px 16px"
+                        }}>
+                            <IonIcon
+                                icon={BackArrowWhite}
+                                style={{ fontSize: "20px", color: "#fff", cursor: "pointer", marginRight: "12px", height: "20px", width: "20px" }}
+                                onClick={() => handleCloseModal()}
+                            />
+                            <span style={{
+                                color: "#fff",
+                                fontWeight: "bold",
+                                fontSize: "20px",
+                                letterSpacing: "1px"
+                            }}>
+                                SELECT STUDENTS
+                            </span>
+                            <div style={{ width: "32px" }}></div>
+                        </div>
+                    }
+                >
                     <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
                         {studentList?.map((person) => {
                             const isSelected = selected.includes(person.id);
@@ -278,13 +289,11 @@ const AssignmentCreatePage = () => {
                                     }}
                                 >
                                     <span style={{ fontWeight: 500 }}>{person.name}</span>
-                                    {/* {!isSelected && <IonIcon icon={PlusGray} style={{ fontSize: '18px', height: "18px", width: "18px" }} color="danger" />} */}
                                 </div>
                             );
                         })}
                     </div>
                     <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "10px" }}>
-                        {/* <CustomButton btnText="Close" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} /> */}
                         <CustomButton btnText="Save" background={"#FF0000"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} />
                     </div>
                 </CommonCard>

@@ -3,13 +3,15 @@ const ChipCard = ({
     icon,
     count, // new
     textTransform = false,
-    rightBorder = false
+    rightBorder = false,
+    onClick = () => { }
 }: {
     title: React.ReactNode | string;
     icon?: React.ReactNode;
     count?: number | string; // optional count
     textTransform?: boolean;
     rightBorder?: boolean;
+    onClick?: () => void;
 }) => {
     return (
         <div style={{
@@ -26,7 +28,7 @@ const ChipCard = ({
             height: "70px",
             paddingRight: "15px",
             borderRight: rightBorder ? "4px solid #2A97F2" : "",
-        }} key={count}>
+        }} key={count} onClick={onClick}>
             {typeof count !== "undefined" && (
                 <div style={{
                     background: "#FBCC13",

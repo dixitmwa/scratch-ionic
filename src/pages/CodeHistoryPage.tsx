@@ -24,7 +24,7 @@ const CodeHistoryPage = () => {
         }
     }
 
-    console.log(listOfCodeHistory)
+    console.log(details)
 
     const handleOpenDetails = (index: number) => {
         setDetails(listOfCodeHistory[index] || {})
@@ -100,7 +100,7 @@ const CodeHistoryPage = () => {
                                 {
                                     listOfCodeHistory?.map((item: any, index: number) => {
                                         return (
-                                            <ChipCard textTransform={true} count={index + 1} title={item?.code} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => handleOpenDetails(index)} />} />
+                                            <ChipCard textTransform={true} count={index + 1} title={`${item?.className} ${item?.classNumber}${item?.sectionName}`} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => handleOpenDetails(index)} />} />
                                         )
                                     })
                                 }
@@ -122,13 +122,13 @@ const CodeHistoryPage = () => {
                                     height: "1px"
                                 }}></div>
                                 <div style={{ display: "flex", gap: "10px", margin: "10px 0px" }}>
-                                    <CommonInput value={details.classId} />
-                                    <CommonInput value={details.sectionId} />
+                                    <CommonInput value={details.classNumber} disabled={true}/>
+                                    <CommonInput value={details.sectionName} disabled={true}/>
                                 </div>
                                 {
                                     details.type != "Class" && (
                                         <>
-                                            <CommonInput textHeader="Class name" value={details.classname} />
+                                            <CommonInput textHeader="Class name" value={details.className} />
                                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                                 {/* <p style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginBottom: "0px" }}>Add students</p> */}
                                                 {/* <p style={{ color: "#607E9C", fontSize: "16px", fontWeight: "bold", marginBottom: "0px" }}>{details?.students} students</p> */}

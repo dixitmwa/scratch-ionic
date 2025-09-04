@@ -1,3 +1,5 @@
+import React from "react";
+
 const CommonCard = ({
     headerText = "",
     bottomText = "",
@@ -6,7 +8,7 @@ const CommonCard = ({
     border = false,
     onClick = () => { }
 }: {
-    headerText?: string;
+    headerText?: React.ReactNode; // <-- changed from string to React.ReactNode
     bottomText?: string;
     children: React.ReactNode;
     style?: React.CSSProperties;
@@ -20,29 +22,35 @@ const CommonCard = ({
                 background: "#FFF",
                 boxShadow: "0 2px 2px 0 rgba(0, 0, 0, 0.15)",
                 borderRadius: "20px",
-                // padding: "20px",
                 width: "100%",
                 overflow: "hidden",
                 border: border ? "2px solid blue" : ""
             }}>
-                {headerText != "" && (<div
-                    style={{
-                        fontSize: "24px",
-                        fontWeight: "bold",
-                        padding: "20px",
-                        background: "#29B0FF",
-                        borderTopLeftRadius: "20px",
-                        borderTopRightRadius: "20px",
-                        color: "white",
-                        textTransform: "uppercase",
-                        textAlign: "center"
-                    }}>
-                    {headerText}
-                </div>)}
+                {headerText !== "" && (
+                    typeof headerText === "string" ? (
+                        <div
+                            style={{
+                                fontSize: "24px",
+                                fontWeight: "bold",
+                                padding: "20px",
+                                background: "#29B0FF",
+                                borderTopLeftRadius: "20px",
+                                borderTopRightRadius: "20px",
+                                color: "white",
+                                textTransform: "uppercase",
+                                textAlign: "center"
+                            }}>
+                            {headerText}
+                        </div>
+                    ) : (
+                        // If headerText is a React node, render as-is (your custom header styling)
+                        headerText
+                    )
+                )}
                 <div style={{ padding: "20px", ...style }}>
                     {children}
                 </div>
-                {bottomText != "" && (<div
+                {bottomText !== "" && (<div
                     style={{
                         fontSize: "16px",
                         fontWeight: "bold",

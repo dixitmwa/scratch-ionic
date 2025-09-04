@@ -1,5 +1,6 @@
 import { IonIcon } from "@ionic/react";
 import { chevronBackOutline } from "ionicons/icons";
+import BackArrow from "../../assets/left_arrow.svg"
 const CommonModal = ({
     description,
     title,
@@ -26,7 +27,7 @@ const CommonModal = ({
                 position: "relative",
             }}>
                 <div style={{ position: "absolute", left: 0 }}>
-                    <IonIcon icon={chevronBackOutline} style={{ fontSize: '32px' }} onClick={onClick} />
+                    <IonIcon icon={BackArrow} style={{ fontSize: '28px' }} onClick={onClick} />
                 </div>
                 {/* <IonIcon icon={chevronBackOutline} style={{ fontSize: '32px' }} onClick={onClick} /> */}
                 <p style={{

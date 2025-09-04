@@ -1,5 +1,6 @@
 import { IonIcon, IonToast, IonSpinner } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
+import BackArrowWhite from "../assets/left_arrow_white.svg"
 import { useHistory } from "react-router";
 import ChipCard from "../components/common-component/ChipCard";
 import View from "../assets/view.svg"
@@ -226,10 +227,36 @@ const ClassroomDetailsPage = () => {
                                 />
                             </div>
                             <CommonPopup isOpen={isModalOpen} setIsOpen={setIsModalOpen} modalRef={selectStudentModalRef}>
-                                <CommonCard headerText="Select students">
+                                <CommonCard
+                                    headerText={
+                                        <div style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                            background: "#29B0FF",
+                                            borderTopLeftRadius: "12px",
+                                            borderTopRightRadius: "12px",
+                                            padding: "10px 16px"
+                                        }}>
+                                            <IonIcon
+                                                icon={BackArrowWhite}
+                                                style={{ fontSize: "20px", color: "#fff", cursor: "pointer", marginRight: "12px" }}
+                                                onClick={() => setIsModalOpen(false)}
+                                            />
+                                            <span style={{
+                                                color: "#fff",
+                                                fontWeight: "bold",
+                                                fontSize: "20px",
+                                                letterSpacing: "1px"
+                                            }}>
+                                                SELECT STUDENTS
+                                            </span>
+                                            <div style={{ width: "32px" }}></div>
+                                        </div>
+                                    }
+                                >
                                     <div style={{ maxHeight: "50vh", overflowY: "scroll", minWidth: "270px" }}>
                                         {studentList?.map((person) => {
-                                            console.log("peopleinside", person)
                                             const isSelected = isStudentSelected(person.id);
                                             return (
                                                 <div
@@ -249,14 +276,12 @@ const ClassroomDetailsPage = () => {
                                                     }}
                                                 >
                                                     <span style={{ fontWeight: 500 }}>{person.name}</span>
-                                                    {/* {!isSelected && <IonIcon icon={PlusGray} style={{ fontSize: '18px', height: "18px", width: "18px" }} color="danger" />} */}
                                                 </div>
                                             );
                                         })}
                                     </div>
                                     <div style={{ display: "flex", gap: "10px", justifyContent: "center", marginBottom: "10px" }}>
-                                        {/* <CustomButton btnText="Close" background={"#D929FF"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} /> */}
-                                        <CustomButton btnText="Save" background={"#FF0000"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { handleCloseModal() }} />
+                                        <CustomButton btnText="Save" background={"#FF0000"} txtColor={"white"} style={{ fontSize: "24px", width: "auto" }} onClick={() => { setIsModalOpen(false) }} />
                                     </div>
                                 </CommonCard>
                             </CommonPopup>

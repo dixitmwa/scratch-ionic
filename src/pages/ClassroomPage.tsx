@@ -87,7 +87,7 @@ const ClassroomPage = () => {
                             {
                                 classroomList.map((item: any, index: number) => (
                                     <>
-                                        <ChipCard textTransform={true} count={index + 1} title={
+                                        <ChipCard onClick={() => { navigateToDetails(item.sectionId) }} textTransform={true} count={index + 1} title={
                                             <div style={{ display: "flex", flexDirection: "column" }}>
                                                 <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item.className}</p>
                                                 <p style={{ margin: "0px", fontSize: "16px" }}>20-aug</p>

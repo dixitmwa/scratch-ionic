@@ -38,7 +38,7 @@ const HistoryPage = () => {
             overflowY: "scroll"
         }}>
             {
-                assignmentList.map((item, index) => {
+                assignmentList.map((item: any, index) => {
                     return (
                         <ChipCard textTransform={true} count={index + 1} title={item.title} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} />} />
                     )

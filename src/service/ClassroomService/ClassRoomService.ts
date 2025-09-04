@@ -20,5 +20,9 @@ export default {
     updateClassroomService: (classQuery: any, classDetails: any) =>
         doFetch(`${CLASSROOM_API_ENDPOINTS.UPDATE_CLASSROOM}?classId=${classQuery.classId}&sectionId=${classQuery.sectionId}`, REQUEST_METHODS.POST, classDetails),
     fetchStudentProjectsService: (studentId: string) =>
-        doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_STUDENT_PROJECTS}?studentId=${studentId}`, REQUEST_METHODS.GET)
+        doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_STUDENT_PROJECTS}?studentId=${studentId}`, REQUEST_METHODS.GET),
+    fetchLoggedStudentProjectsService: () =>
+        doFetch(CLASSROOM_API_ENDPOINTS.FETCH_STUDENT_PROJECTS, REQUEST_METHODS.GET),
+    fetchProjectDetailByIdService: (projectId: string) =>
+        doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_PROJECT_DETAIL_BY_ID}?projectId=${projectId}`, REQUEST_METHODS.GET),
 }

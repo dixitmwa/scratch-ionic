@@ -33,6 +33,8 @@ import AssignmentUpcomingPage from "../pages/AssignmentUpcomingPage";
 import AssignmentHistoryPage from "../pages/AssignmentHistoryPage";
 import MyLibraryPage from "../pages/MyLibraryPage";
 import AssignmentDetailsPage from "../pages/AssignmentDetailsPage";
+import AssignmentBlockViewPage from "../pages/AssignmentBlockViewPage";
+import AssignmentBlockVideoPage from "../pages/AssignmentBlockVideoPage";
 
 const TabsLayout = () => {
   const [showTab, setShowTab] = useState(true);
@@ -84,6 +86,8 @@ const TabsLayout = () => {
           <Route exact path="/tabs/assignment/upcoming" component={AssignmentUpcomingPage} />
           <Route exact path="/tabs/assignment/history" component={AssignmentHistoryPage} />
           <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} />
+          <Route exact path="/tabs/assignment/project-view" component={AssignmentBlockViewPage} />
+          <Route exact path="/tabs/assignment/project-video" component={AssignmentBlockVideoPage} />
           {/* <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} /> */}
           {/* <Redirect exact from="/tabs" to="/tabs/home" /> */}
         </IonRouterOutlet>
@@ -98,7 +102,7 @@ const TabsLayout = () => {
               </IonTabButton>
               <IonTabButton tab="history" href="/tabs/history" className={location.pathname.startsWith("/tabs/history") ? "active-tab" : ""}>
                 <IonIcon icon={HistoryTab} />
-                <IonLabel>History</IonLabel>
+                <IonLabel>My Library</IonLabel>
               </IonTabButton>
               <IonTabButton tab="project" href="/tabs/project" className={location.pathname.startsWith("/tabs/project") ? "active-tab" : ""}>
                 <IonIcon icon={ProjectTab} />

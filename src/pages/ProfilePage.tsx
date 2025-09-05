@@ -19,6 +19,7 @@ import Profile from "../assets/profile.svg"
 import CommonPopup from "../components/common-component/Popup";
 import CustomButton from "../components/common-component/Button";
 import { Preferences } from "@capacitor/preferences";
+import { useAuth } from "../service/AuthService/AuthContext";
 import CommonCard from "../components/common-component/Card";
 import { useHistory } from "react-router";
 import CustomDropdown from "../components/common-component/DropDown";
@@ -109,14 +110,19 @@ const ProfilePage = () => {
         classModalRef.current?.dismiss();
     }
 
+    const { logout } = useAuth();
     const handleLogOut = async () => {
         setLoadingLogOut(true);
-        await Preferences.clear();
-        setTimeout(() => {
-            setIsModalOpen(false);
-            logoutModalRef.current?.dismiss();
-            history.push('/login');
-        }, 1500);
+        // Dismiss all modals and reset UI state BEFORE logout
+        setIsModalOpen(false);
+        logoutModalRef.current?.dismiss();
+        // Wait for modal to close before logout
+        setTimeout(async () => {
+            await logout();
+            // After logout, navigate to login page
+            history.replace('/login');
+            setLoadingLogOut(false);
+        }, 300);
     };
 
     const handleBack = () => {
@@ -199,6 +205,11 @@ const ProfilePage = () => {
     useIonViewDidEnter(() => {
         fetchUserType();
     });
+
+    useEffect(() => {
+        fetchUserType();
+    }, []);
+
     useEffect(() => {
         if (!selectedClass) {
             fetchStudentByDivision()
@@ -239,34 +250,21 @@ const ProfilePage = () => {
                                                     <div style={{ display: "flex", gap: "10px", margin: "10px 0px" }}>
                                                         <CustomDropdown
                                                             placeholder="Class"
-                                                            value={classesDetails.class}
+                                                            value={classDetails.class}
                                                             onChange={(val: any) => {
-                                                                const selectedClassObj = classDivisionData.find(item => item.classId === val.value);
-                                                                debugger
-                                                                setClassesDetails({
-                                                                    class: val.label,
-                                                                    division: ''
-                                                                });
-                                                                setClassDetails({
-                                                                    ...classDetails,
-                                                                    class: selectedClassObj?.classId || '',
-                                                                    division: ''
-                                                                });
+                                                                setClassDetails({ ...classDetails, class: val.value, division: '' });
+                                                                setClassesDetails({ class: val.value, division: '' });
                                                             }}
+                                                            isSearchable={true}
                                                             options={classOptions} />
                                                         <CustomDropdown
                                                             placeholder="Division"
-                                                            value={classesDetails.division}
+                                                            value={classDetails.division}
                                                             onChange={(val: any) => {
-                                                                debugger
-                                                                const selectedClassId = classDivisionData.find(c => c.classId === classesDetails.class)?.classNumber;
-                                                                const selectedSectionId = divisionOptionsRaw.find(d => d.sectionId === val.value)?.sectionId;
-                                                                setClassesDetails({ ...classesDetails, division: val.label });
-                                                                setClassDetails({
-                                                                    ...classDetails,
-                                                                    division: selectedSectionId || ''
-                                                                });
+                                                                setClassDetails({ ...classDetails, division: val.value });
+                                                                setClassesDetails({ ...classesDetails, division: val.value });
                                                             }}
+                                                            isSearchable={true}
                                                             options={divisionOptions} />
                                                     </div>
                                                     {
@@ -329,13 +327,18 @@ const ProfilePage = () => {
                                         <div style={{ display: "flex", gap: "10px" }}>
                                             <CustomDropdown
                                                 textHeader="Class"
-                                                value={userDetails.classNumber}
+                                                value={userDetails.classId}
+                                                options={classDivisionData.map(item => ({ label: item.classNumber, value: item.classId }))}
                                                 onChange={(val: any) => setProfileData({ ...profileData, className: val })}
                                                 disabled={true}
                                             />
                                             <CustomDropdown
                                                 textHeader="Section"
-                                                value={userDetails?.sectionName}
+                                                value={userDetails.sectionId}
+                                                options={(() => {
+                                                    const selectedClassObj = classDivisionData.find(item => item.classId === userDetails.classId);
+                                                    return (selectedClassObj?.sections || []).map((section: any) => ({ label: section.sectionName, value: section.sectionId }));
+                                                })()}
                                                 onChange={(val: any) => setProfileData({ ...profileData, section: val })}
                                                 disabled={true}
                                             />
@@ -356,23 +359,23 @@ const ProfilePage = () => {
                     </CommonModal>
                 ) : (
                     <>
-                        <ChipCard title="Sound" icon={<IonIcon icon={MuteSound} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("sound") }} />} />
-                        <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={Profile} style={{ fontSize: '28px' }} /> <p>Edit profile</p></div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("edit-profile") }} />} />
+                        {/* <ChipCard title="Sound" icon={<IonIcon icon={MuteSound} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("sound") }} />} onClick={() => { handleSubPages("sound") }} /> */}
+                        <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={Profile} style={{ fontSize: '28px' }} /> <p>Edit profile</p></div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("edit-profile") }} />} onClick={() => { handleSubPages("edit-profile") }}/>
                         {isStudent ? (<ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={HowToPlay} style={{ fontSize: '28px' }} /> <p>How to play</p></div>}
-                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("how-to-play") }} />} />) :
+                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("how-to-play") }} />} onClick={() => { handleSubPages("how-to-play") }}/>) :
                             (
                                 <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={CodeLink} style={{ fontSize: '28px' }} /> <p>Code Link</p></div>}
-                                    icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("code-link") }} />} />
+                                    icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("code-link") }} />} onClick={() => { handleSubPages("code-link") }}/>
                             )
                         }
                         <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={Help} style={{ fontSize: '28px' }} /> <p>Help</p></div>}
-                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("help") }} />} />
+                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("help") }} />} onClick={() => { handleSubPages("help") }} />
                         <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={PrivacyPolicy} style={{ fontSize: '28px' }} /> <p>Privacy policy</p></div>}
-                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("privacy-policy") }} />} />
+                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("privacy-policy") }} />} onClick={() => { handleSubPages("privacy-policy") }} />
                         <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={TermsAndConditions} style={{ fontSize: '28px' }} /> <p>Terms and conditions</p></div>}
-                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("terms-and-conditions") }} />} />
+                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '28px' }} onClick={() => { handleSubPages("terms-and-conditions") }} />} onClick={() => { handleSubPages("terms-and-conditions") }} />
                         <ChipCard title={<div style={{ display: "flex", alignItems: "center", gap: "10px" }}><IonIcon icon={Logout} style={{ fontSize: '28px' }} /> <p>Logout</p></div>}
-                            icon={<IonIcon icon={RightArrow} id="open-logout-modal" color="primary" style={{ fontSize: '28px' }} onClick={() => { setIsModalOpen(true) }} />} />
+                            icon={<IonIcon icon={RightArrow} id="open-logout-modal" color="primary" style={{ fontSize: '28px' }} onClick={() => { setIsModalOpen(true) }} />} onClick={() => { setIsModalOpen(true) }} />
                     </>
                 )
             }

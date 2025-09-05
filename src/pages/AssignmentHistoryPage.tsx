@@ -27,7 +27,8 @@ const AssignmentHistoryPage = () => {
         setSearchTimeout(timeout);
     };
 
-    const handleViewDetails = (item: any) => {
+    const handleViewDetails = async (item: any) => {
+        await Preferences.set({ key: "backPage", value: "history" })
         setSectionId(item.id);
         history.push("/tabs/assignment/details");
     }
@@ -87,36 +88,43 @@ const AssignmentHistoryPage = () => {
                 </div>
             </div>
             <>
-                {assignmentList.map((item: any, index: number) => (
-                    <ChipCard
-                        textTransform={true}
-                        count={index + 1}
-                        title={
-                            <div style={{ display: "flex", flexDirection: "column" }}>
-                                <p style={{
-                                    margin: "0px", fontWeight: 600, fontSize: "20px", whiteSpace: "nowrap",
-                                    overflow: "hidden",
-                                    textOverflow: "ellipsis",
-                                    maxWidth: "180px"
-                                }}>{item?.title}</p>
-                                <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
-                                <p
-                                    style={{
-                                        margin: "0px",
-                                        fontSize: "16px",
-                                        whiteSpace: "nowrap",
+                {assignmentList.length === 0 ? (
+                    <div style={{ width: "100%", textAlign: "center", color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginTop: "40px" }}>
+                        Assignment not found
+                    </div>
+                ) : (
+                    assignmentList.map((item: any, index: number) => (
+                        <ChipCard
+                            textTransform={true}
+                            count={index + 1}
+                            title={
+                                <div style={{ display: "flex", flexDirection: "column" }}>
+                                    <p style={{
+                                        margin: "0px", fontWeight: 600, fontSize: "20px", whiteSpace: "nowrap",
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         maxWidth: "180px"
-                                    }}
-                                >
-                                    {item?.totalStudentsAssigned}/{item?.submittedCount} students submitted
-                                </p>
-                            </div>
-                        }
-                        icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />}
-                    />
-                ))}
+                                    }}>{item?.title}</p>
+                                    <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
+                                    <p
+                                        style={{
+                                            margin: "0px",
+                                            fontSize: "16px",
+                                            whiteSpace: "nowrap",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            maxWidth: "180px"
+                                        }}
+                                    >
+                                        {item?.totalStudentsAssigned}/{item?.submittedCount} students submitted
+                                    </p>
+                                </div>
+                            }
+                            onClick={() => handleViewDetails(item)}
+                            icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />}
+                        />
+                    ))
+                )}
             </>
         </div>
     )

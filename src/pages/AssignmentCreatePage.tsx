@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { IonDatetimeButton, IonModal, IonDatetime } from "@ionic/react";
 import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import BackArrowWhite from "../assets/left_arrow_white.svg";
@@ -16,13 +17,15 @@ import AssignmentService from "../service/AssignmentService/AssignmentService";
 const AssignmentCreatePage = () => {
     const history = useHistory()
     const [selectedClass, setSelectedClass] = useState(true)
-    const selectStudentModalRef = useRef();
+    // Fix ref type for IonModal
+    const selectStudentModalRef = useRef<HTMLIonModalElement>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [classDivisionData, setClassDivisionData] = useState<any[]>([]);
     const [studentList, setStudentList] = useState<any[]>([]);
     const [showError, setShowError] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
-    const [isLoading, setIsLoading] = useState(false)
+    const [isLoading, setIsLoading] = useState(false);
+    const [isModalDateOpen, setIsModalDateOpen] = useState(false);
     const [classDetails, setClassDetails] = useState({
         class: "",
         division: "",
@@ -34,21 +37,22 @@ const AssignmentCreatePage = () => {
     const [selected, setSelected] = useState<number[]>([]);
     const [selectedOptions, setSelectedOptions] = useState({ class: "", division: "" });
 
+    // Map classOptions using classId for value, classNumber for label
     const classOptions = classDivisionData.map(item => ({
         label: item.classNumber,
         value: item.classId
     }));
 
-    const divisionOptionsRaw = classDivisionData.find(
-        item => item.classNumber === classDetails.class
-    )?.sections || [];
+    // Find selected class object by classId
+    const selectedClassObj = classDivisionData.find(item => item.classId === classDetails.class);
+    const divisionOptionsRaw = selectedClassObj?.sections || [];
 
+    // Map divisionOptions using sectionId for value, sectionName for label
     const divisionOptions = divisionOptionsRaw.map((section: any) => ({
         label: section.sectionName,
         value: section.sectionId
     }));
 
-    console.log("selectedOptions", divisionOptions, divisionOptionsRaw, classOptions, classDivisionData, classDetails)
 
     const toggleSelect = (id: number) => {
         setSelected((prev) =>
@@ -57,12 +61,11 @@ const AssignmentCreatePage = () => {
     };
 
     const handleCloseModal = () => {
-        selectStudentModalRef.current?.dismiss();
+        selectStudentModalRef.current?.dismiss && selectStudentModalRef.current.dismiss();
     }
 
     const fetchClassAndDiv = async () => {
         const response = await CodeLinkService.fetchClassAndDivisionService()
-        console.log("response", response)
         if (response?.status === 200) {
             setClassDivisionData(response?.data?.data)
         }
@@ -155,17 +158,19 @@ const AssignmentCreatePage = () => {
                         placeholder="Class"
                         value={classDetails.class}
                         onChange={(val: any) => {
-                            setClassDetails({ ...classDetails, class: val.label, division: '' })
+                            setClassDetails({ ...classDetails, class: val.value, division: '' })
                             setSelectedOptions({ ...selectedOptions, class: val.value, division: '' })
                         }}
+                        isSearchable={true}
                         options={classOptions} />
                     <CustomDropdown
                         placeholder="Division"
                         value={classDetails.division}
                         onChange={(val: any) => {
-                            setClassDetails({ ...classDetails, division: val.label })
+                            setClassDetails({ ...classDetails, division: val.value })
                             setSelectedOptions({ ...selectedOptions, division: val.value })
                         }}
+                        isSearchable={true}
                         options={divisionOptions} />
                 </div>
                 {!selectedClass && (
@@ -178,7 +183,7 @@ const AssignmentCreatePage = () => {
                             onClick={() => setIsModalOpen(true)}
                         />
                         <CommonInput
-                            textHeader="Class name"
+                            textHeader="Group name"
                             type="text"
                             value={classDetails.className}
                             placeholder="Enter name"
@@ -204,11 +209,8 @@ const AssignmentCreatePage = () => {
                 <div style={{ display: "flex", gap: "5px", width: "100%" }}>
                     <div style={{ flex: 1 }}>
                         <label style={{ color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginBottom: "8px", display: "block" }}>Due date</label>
-                        <input
-                            type="date"
-                            value={classDetails.date}
-                            min={new Date().toISOString().split('T')[0]}
-                            onChange={e => setClassDetails({ ...classDetails, date: e.target.value })}
+                        {/* Custom input-like div for date picker */}
+                        <div
                             style={{
                                 width: "100%",
                                 border: "2px solid #607E9C",
@@ -216,11 +218,64 @@ const AssignmentCreatePage = () => {
                                 borderRadius: "50px",
                                 padding: "16px",
                                 fontSize: "20px",
-                                color: "#607E9C",
+                                color: classDetails.date ? "#607E9C" : "#A0A0A0",
                                 background: "transparent",
-                                outline: "none"
+                                outline: "none",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center"
                             }}
-                        />
+                            onClick={() =>  setIsModalDateOpen(true)}
+                        >
+                            {classDetails.date ? classDetails.date.split('T')[0] : "Select date"}
+                        </div>
+                        {/* <CommonPopup isOpen={isModalDateOpen} setIsOpen={setIsModalDateOpen}>
+                            <IonDatetime
+                                presentation="date"
+                                min={new Date().toISOString().split('T')[0]}
+                                value={classDetails.date}
+                                onIonChange={(e) => {
+                                    let value = e.detail.value;
+                                    if (Array.isArray(value)) value = value[0] || '';
+                                    if (!value) value = '';
+                                    setClassDetails({ ...classDetails, date: value });
+                                    setIsModalOpen(false);
+                                }}
+                                style={{
+                                    width: "100%",
+                                    border: "2px solid #607E9C",
+                                    minHeight: "60px",
+                                    borderRadius: "50px",
+                                    padding: "16px",
+                                    fontSize: "20px",
+                                    color: "#607E9C",
+                                    background: "transparent",
+                                    outline: "none"
+                                }}
+                            />
+                        </CommonPopup> */}
+                        <CommonPopup isOpen={isModalDateOpen} setIsOpen={setIsModalDateOpen}>
+                            <IonDatetime
+                                id="datetime"
+                                min={new Date().toISOString().split('T')[0]}
+                                presentation="date"
+                                value={classDetails.date}
+                            ></IonDatetime>
+                            <div style={{ padding: "16px", textAlign: "right" }}>
+                                <CustomButton
+                                    background="#FF8429"
+                                    btnText="Confirm"
+                                    onClick={() => {
+                                        const datetimeEl = document.getElementById("datetime") as HTMLInputElement | null;
+                                        const selectedDate = datetimeEl?.value || "";
+                                        if (selectedDate) {
+                                            setClassDetails({ ...classDetails, date: selectedDate });
+                                        }
+                                        setIsModalDateOpen(false);
+                                    }}
+                                />
+                            </div>
+                        </CommonPopup>
                     </div>
                 </div>
                 <CustomButton

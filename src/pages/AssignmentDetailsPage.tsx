@@ -1,4 +1,4 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, useIonViewDidEnter } from "@ionic/react";
 import SearchInput from "../components/common-component/SearchInput";
 import { useEffect, useState, useRef } from "react";
 import BackArrow from "../assets/left_arrow.svg";
@@ -12,10 +12,23 @@ import RightArrow from "../assets/right_arrow_double.svg";
 import CustomButton from "../components/common-component/Button";
 import Loader from "../components/common-component/Loader";
 import AssignmentService from "../service/AssignmentService/AssignmentService";
+import { Preferences } from "@capacitor/preferences";
+import { loadProject, setLastSavedProjectData } from "../components/commonfunction";
+import { attachRendererIfNone, disposeRenderer, getProjectBuffer, getVMInstance, saveCurrentProjectBuffer, setUploadedProjectBuffer } from "../scratchVMInstance";
+import ScratchBlocks from 'scratch-blocks';
+import '../components/blocks.css';
+import { ScreenOrientation } from "@capacitor/screen-orientation";
+import CommonCard from "../components/common-component/Card";
 
 const AssignmentDetailsPage = () => {
-    const { sectionId } = useSection();
+    const { sectionId, setSelectedAssignmentItem } = useSection();
+    // const blockRef = useRef(null);
+    // const canvasRef = useRef(null);
+    // const workspaceRef = useRef(null);
+    // const vmRef = useRef(null);
     const history = useHistory();
+    // const [ready, setReady] = useState(false);
+    const [backPage, setBackPage] = useState<string>("");
     const [inputValue, setInputValue] = useState("");
     const [assignmentDetails, setAssignmentDetails] = useState<any>({});
     const [filteredAssignments, setFilteredAssignments] = useState<any[]>([]);
@@ -25,9 +38,14 @@ const AssignmentDetailsPage = () => {
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
     const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+    // const [fileUploaded, setFileUploaded] = useState(false);
+    // const selectedSpiId = useRef(null)
+    // const [selectedSpriteId, setSelectedSpriteId] = useState(null);
 
     const fetchAssignmentDetails = async () => {
         setIsLoading(true);
+        const { value } = await Preferences.get({ key: "backPage" })
+        setBackPage(value || "");
         const response = await AssignmentService.fetchAssignmentByIdService(sectionId);
         if (response?.status === 200) {
             setAssignmentDetails(response?.data?.data);
@@ -59,7 +77,8 @@ const AssignmentDetailsPage = () => {
     const handleViewDetails = (item: any, idx: number) => {
         setSelectedItem(item);
         setSelectedIndex(idx);
-        setShowDetails(true);
+        if (setSelectedAssignmentItem) setSelectedAssignmentItem(item);
+        history.push("/tabs/assignment/project-view");
     }
 
     const handleAnswerClick = (answer: "correct" | "wrong") => {
@@ -68,25 +87,45 @@ const AssignmentDetailsPage = () => {
     }
 
     const handlePrev = () => {
-        debugger
-        if (selectedIndex !== null && selectedIndex > 0) {
-            const prevIndex = selectedIndex - 1;
-            setSelectedIndex(prevIndex);
-            setSelectedItem(assignmentDetails.assignments[prevIndex]);
+        if (selectedIndex !== null) {
+            let prevIndex = selectedIndex - 1;
+            while (prevIndex >= 0) {
+                const prevItem = assignmentDetails.assignments[prevIndex];
+                if (prevItem?.isSubmitted && prevItem?.submittedDate) {
+                    setSelectedIndex(prevIndex);
+                    setSelectedItem(prevItem);
+                    return;
+                }
+                prevIndex--;
+            }
         }
     };
 
+    const handleBack = async () => {
+        if (backPage === "upcoming") {
+            await Preferences.set({ key: "backPage", value: "" })
+            history.push("/tabs/assignment/upcoming");
+        } else {
+            history.push("/tabs/assignment/history")
+        }
+    }
+
     const handleNext = () => {
-        if (
-            selectedIndex !== null &&
-            assignmentDetails.assignments &&
-            selectedIndex < assignmentDetails.assignments.length - 1
-        ) {
-            const nextIndex = selectedIndex + 1;
-            setSelectedIndex(nextIndex);
-            setSelectedItem(assignmentDetails.assignments[nextIndex]);
+        if (selectedIndex !== null && assignmentDetails.assignments) {
+            let nextIndex = selectedIndex + 1;
+            while (nextIndex < assignmentDetails.assignments.length) {
+                const nextItem = assignmentDetails.assignments[nextIndex];
+                if (nextItem?.isSubmitted && nextItem?.submittedDate) {
+                    setSelectedIndex(nextIndex);
+                    setSelectedItem(nextItem);
+                    return;
+                }
+                nextIndex++;
+            }
         }
     };
+
+    console.log('selectedItem', selectedItem)
 
     useEffect(() => {
         fetchAssignmentDetails();
@@ -121,7 +160,7 @@ const AssignmentDetailsPage = () => {
                         justifyContent: "space-between",
                         alignItems: "center"
                     }}>
-                        <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { showDetails ? setShowDetails(false) : history.push("/tabs/assignment/history") }} />
+                        <IonIcon icon={BackArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleBack() }} />
                         {
                             showDetails ? (
                                 <div>
@@ -136,7 +175,7 @@ const AssignmentDetailsPage = () => {
                                 <SearchInput
                                     value={inputValue}
                                     onChange={e => setInputValue(e.target.value)}
-                                    onSearch={() => {}} // debounced, so no need to call here
+                                    onSearch={() => { }} // debounced, so no need to call here
                                 />
                             )
                         }
@@ -145,7 +184,7 @@ const AssignmentDetailsPage = () => {
                 </div>
                 <>
                     {
-                        !showDetails ? (
+                        !showDetails && (
                             <>
                                 {filteredAssignments.map((item: any, index: number) => (
                                     <ChipCard
@@ -173,7 +212,7 @@ const AssignmentDetailsPage = () => {
                                                 onClick={() => { handleViewDetails(item, index) }}
                                             />
                                         }
-                                        onClick={() => { handleViewDetails(item, index) }}
+                                        onClick={() => { item?.submittedDate ? handleViewDetails(item, index) : null }}
                                     />
 
                                 ))}
@@ -183,60 +222,6 @@ const AssignmentDetailsPage = () => {
                                     </div>
                                 )}
                             </>
-                        ) : (
-                            <div style={{
-                                background: '#F7FAFF',
-                                borderRadius: '20px',
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                                padding: '24px 12px 16px 12px',
-                                width: '100%',
-                                margin: '0 auto',
-                                position: 'relative',
-                                display: 'flex',
-                                flexDirection: 'column',
-                                alignItems: 'center',
-                            }}>
-                                <CustomButton btnText="" icon={<IonIcon icon={LeftArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} onClick={handlePrev} />
-                                <CustomButton btnText="" icon={<IonIcon icon={RightArrow} style={{ fontSize: "25px" }} />} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', width: "60px" }} onClick={handleNext} />
-                                <div style={{
-                                    background: '#fff',
-                                    borderRadius: '16px',
-                                    padding: '18px 8px',
-                                    minHeight: '400px',
-                                    minWidth: '330px',
-                                    marginBottom: '18px',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
-                                    boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
-                                }}>
-                                    blocks
-                                </div>
-                                <CustomButton btnText="" style={{ width: "auto" }}
-                                    icon={<IonIcon icon={PlayArrow} style={{ fontSize: "25px" }} />}
-                                />
-                                <div style={{ display: 'flex', gap: "5px", justifyContent: 'space-between', marginTop: '8px' }}>
-                                    <CustomButton
-                                        btnText="wrong"
-                                        txtColor={selectedAnswer === "wrong" ? "#FFFFFF" :
-                                            "#607E9C"}
-                                        background={selectedAnswer === "wrong" ? "#FF297A" : "#FFFFFF"}
-                                        style={{
-                                            padding: '12px 20px',
-                                        }}
-                                        onClick={() => { handleAnswerClick("wrong") }}
-                                    />
-                                    <CustomButton
-                                        btnText="correct"
-                                        txtColor={selectedAnswer === "correct" ? "#FFFFFF" : "#607E9C"}
-                                        background={selectedAnswer === "correct" ? "#29B0FF" : "#FFFFFF"}
-                                        style={{
-                                            padding: '12px 20px',
-                                        }}
-                                        onClick={() => { handleAnswerClick("correct") }}
-                                    />
-                                </div>
-                            </div>
                         )
                     }
                 </>

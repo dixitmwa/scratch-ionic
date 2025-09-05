@@ -18,5 +18,7 @@ export default {
     updateProfileService: (profileData: any) =>
         doFetch(AUTH_API_ENDPOINTS.UPDATE_PROFILE, REQUEST_METHODS.POST, profileData),
     fetchAssignmentHistoryService: () =>
-        doFetch(AUTH_API_ENDPOINTS.FETCH_HISTORY_ASSIGNMENTS, REQUEST_METHODS.GET)
+        doFetch(AUTH_API_ENDPOINTS.FETCH_HISTORY_ASSIGNMENTS, REQUEST_METHODS.GET),
+    fetchSchoolWiseClassesService: () =>
+        doFetch(AUTH_API_ENDPOINTS.FETCH_SCHOOLWISE_CLASSES, REQUEST_METHODS.GET),
 }

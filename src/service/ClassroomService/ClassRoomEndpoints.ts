@@ -5,7 +5,9 @@ const CLASSROOM_API_ENDPOINTS = {
     FETCH_SECTION_BY_ID: "/Class/GetSectionById",
     UPDATE_CLASSROOM: "/Class/UpdateClass",
     FETCH_STUDENT_PROJECTS: "/Project/GetProjectByStudentId",
-    FETCH_PROJECT_DETAIL_BY_ID:"/Project/FetchProjectDetails"
+    FETCH_PROJECT_DETAIL_BY_ID: "/Project/FetchProjectDetails",
+    SUBMIT_PROJECT: "/Project/SubmitProject",
+    FETCH_PROJECT_FILE: "/Project/DownloadProject"
 };
 
 export default CLASSROOM_API_ENDPOINTS;

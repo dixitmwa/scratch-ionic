@@ -1,10 +1,11 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import CustomButton from "../../components/common-component/Button"
 import CommonCard from "../../components/common-component/Card"
 import CommonInput from "../../components/common-component/Input"
 import { useHistory } from "react-router"
 import { Link } from "react-router-dom"
 import { Preferences } from "@capacitor/preferences"
+import { useAuth } from "../../service/AuthService/AuthContext";
 import { IonIcon, IonPage, IonToast, useIonRouter, useIonViewDidLeave, useIonViewWillEnter } from "@ionic/react"
 import Back from "../../assets/double_arrow_left_button.svg"
 import AuthService from "../../service/AuthService/AuthService"
@@ -31,6 +32,10 @@ const LoginWithMobile = () => {
         loadUserType();
     });
 
+    useEffect(() => {
+        loadUserType();
+    }, [])
+
     console.log("-------inside------")
 
     const sentOtp = () => {
@@ -43,6 +48,7 @@ const LoginWithMobile = () => {
         history.push("/tabs/editor")
     }
 
+    const { checkAuth } = useAuth();
     const verifyOtp = async () => {
         setIsLoading(true)
         const reqObj = {
@@ -59,8 +65,8 @@ const LoginWithMobile = () => {
         } else {
             await Preferences.set({ key: 'auth', value: response?.data?.data?.token })
             await Preferences.set({ key: 'userType', value: response?.data?.data?.role?.toLowerCase() })
+            await checkAuth();
             setTimeout(() => {
-                // router.push("/login-method", "forward");
                 history.push("/tabs/editor")
             }, 0)
         }

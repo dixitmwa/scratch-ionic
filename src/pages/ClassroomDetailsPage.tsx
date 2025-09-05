@@ -331,6 +331,7 @@ const ClassroomDetailsPage = () => {
                                                     <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{student.name}</p>
                                                 </div>
                                             }
+                                            onClick={() => { showStudentProject(student) }}
                                             icon={
                                                 <IonIcon
                                                     icon={View}

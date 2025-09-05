@@ -25,4 +25,8 @@ export default {
         doFetch(CLASSROOM_API_ENDPOINTS.FETCH_STUDENT_PROJECTS, REQUEST_METHODS.GET),
     fetchProjectDetailByIdService: (projectId: string) =>
         doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_PROJECT_DETAIL_BY_ID}?projectId=${projectId}`, REQUEST_METHODS.GET),
+    submitProjectService: (ProjectId: string, projectDetails: any) =>
+        doFetch(`${CLASSROOM_API_ENDPOINTS.SUBMIT_PROJECT}?projectId=${ProjectId}`, REQUEST_METHODS.POST, projectDetails, { headers: { 'Content-Type': "multipart/form-data" } }),
+    fetchProjectFileService: (projectId: string) =>
+        doFetch(`${CLASSROOM_API_ENDPOINTS.FETCH_PROJECT_FILE}?projectId=${projectId}`, REQUEST_METHODS.GET),
 }

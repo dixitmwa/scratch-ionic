@@ -1,4 +1,17 @@
 import './CustomButton.css';
+import { ReactNode } from 'react';
+
+interface CustomButtonProps {
+    btnText?: string;
+    onClick?: () => void;
+    background?: string;
+    txtColor?: string;
+    disable?: boolean;
+    icon?: ReactNode;
+    style?: React.CSSProperties;
+    isLoading?: boolean;
+    [key: string]: any;
+}
 
 const CustomButton = ({
     btnText = "Button",
@@ -10,7 +23,7 @@ const CustomButton = ({
     style = {},
     isLoading = false,
     ...props
-}) => {
+}: CustomButtonProps) => {
     return (
         <button
             onClick={onClick}

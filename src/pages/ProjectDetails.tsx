@@ -9,6 +9,7 @@ import { PDFDocument } from "pdf-lib";
 import { Preferences } from "@capacitor/preferences";
 import { useSection } from "../context/SectionContext";
 import ClassRoomService from "../service/ClassroomService/ClassRoomService";
+import { Camera, CameraResultType, CameraSource } from "@capacitor/camera";
 
 const ProjectDetailsPage = () => {
     const history = useHistory()
@@ -17,13 +18,78 @@ const ProjectDetailsPage = () => {
     const [loading, setLoading] = useState(false);
     console.log("projectId", projectId)
 
-    const fetchProjectDetail = async ()=>{
+    const fetchProjectDetail = async () => {
         const response = await ClassRoomService.fetchProjectDetailByIdService(projectId);
         if (response?.status === 200) {
             console.log("Project Details:", response?.data?.data);
             setProjectDetails(response?.data?.data);
         }
     }
+
+    const takePhoto = async () => {
+        setLoading(true);
+        await Preferences.set({ key: "projectId", value: projectId || "" })
+        history.push("/tabs/scratch-editor");
+        return
+        const photo = await Camera.getPhoto({
+            resultType: CameraResultType.Base64,
+            source: CameraSource.Camera,
+            quality: 100,
+        });
+        debugger;
+        // setShowLoading(true);
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage([595, 842]);
+
+        const imageMimeType = photo.format === "jpeg" ? "image/jpeg" : "image/png";
+
+        const base64Data = photo.base64String!;
+        const byteArray = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+
+        let embeddedImage;
+        if (imageMimeType === "image/jpeg") {
+            embeddedImage = await pdfDoc.embedJpg(byteArray);
+        } else {
+            embeddedImage = await pdfDoc.embedPng(byteArray);
+        }
+
+        const { width, height } = embeddedImage.scale(0.5);
+        page.drawImage(embeddedImage, {
+            x: 50,
+            y: 700,
+            width,
+            height,
+        });
+
+        const pdfBytes = await pdfDoc.save();
+        const pdfBlob = new Blob([pdfBytes], { type: "application/pdf" });
+        debugger;
+        const formData = new FormData();
+        debugger;
+        formData.append("pdf_file", pdfBlob, "photo.pdf");
+
+        fetch("https://prthm11-scratch-vision-game.hf.space/process_pdf", {
+            method: "POST",
+            body: formData,
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("data", data);
+                localStorage.setItem("project", data?.test_url);
+                Preferences.set({ key: "project", value: data?.test_url });
+                // setImageUploaded(true);
+                setLoading(false);
+                // setProjectFile(data?.test_url)
+                // setShowLoading(false);
+                history.push("/tabs/scratch-editor");
+                // ionRouter.push('/scratch-editor', 'forward', 'replace');
+            })
+            .catch((error) => {
+                setLoading(false);
+                console.error("Error processing PDF:", error);
+                // setShowLoading(false);
+            });
+    };
 
     const scanDocument = async () => {
         setLoading(true);
@@ -126,7 +192,6 @@ const ProjectDetailsPage = () => {
     // })
 
     return (
-        // projectId is available here for fetching project details
         <div className="project-details-content" style={{
             margin: "6vh 0px 10px 0px",
             display: "flex",
@@ -205,13 +270,13 @@ const ProjectDetailsPage = () => {
                 <CustomButton
                     btnText="START SCANNING"
                     background="#FF8429"
-                    onClick={() => { scanDocument() }}
-                    disable={
-                        !!projectDetails && (
-                            projectDetails.isSubmitted ||
-                            (projectDetails.endDate && new Date() > new Date(projectDetails.endDate))
-                        )
-                    }
+                    onClick={() => { takePhoto() }}
+                    // disable={
+                    //     !!projectDetails && (
+                    //         projectDetails.isSubmitted ||
+                    //         (projectDetails.endDate && new Date() > new Date(projectDetails.endDate))
+                    //     )
+                    // }
                 />
             </div>
         </div>

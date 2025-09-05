@@ -2,7 +2,8 @@ import { Preferences } from "@capacitor/preferences";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 // import { useHistory } from "react-router";
 const instance = axios.create();
-const baseUrl = "http://192.168.1.48:90/api";
+const baseUrl = "https://9d296a027691.ngrok-free.app/api";
+export const rootUrl = "https://9d296a027691.ngrok-free.app/";
 // const history = useHistory();
 
 instance.interceptors.request.use(
@@ -11,6 +12,7 @@ instance.interceptors.request.use(
         if (value) {
             config.headers.Authorization = `Bearer ${value}`;
         }
+        config.headers['ngrok-skip-browser-warning'] = true;
         return config;
     },
     (error) => {

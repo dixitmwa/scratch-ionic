@@ -90,7 +90,16 @@ const ClassroomPage = () => {
                                         <ChipCard onClick={() => { navigateToDetails(item.sectionId) }} textTransform={true} count={index + 1} title={
                                             <div style={{ display: "flex", flexDirection: "column" }}>
                                                 <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>{item.className}</p>
-                                                <p style={{ margin: "0px", fontSize: "16px" }}>20-aug</p>
+                                                <p style={{ margin: "0px", fontWeight: 600, fontSize: "16px" }}>Class : {item.classNumber}/{item.sectionName}</p>
+                                                <p style={{ margin: "0px", fontSize: "16px" }}>
+                                                    {item?.createdDate ? (() => {
+                                                        const d = new Date(item.createdDate);
+                                                        const day = String(d.getDate()).padStart(2, '0');
+                                                        const month = d.toLocaleString('en-US', { month: 'short' }).toLowerCase();
+                                                        const year = String(d.getFullYear()).slice(-2);
+                                                        return `${day}-${month}-${year}`;
+                                                    })() : "-"}
+                                                </p>
                                             </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { navigateToDetails(item.sectionId) }} />} />
                                         {/* <div style={{ marginBottom: "10px" }}></div> */}
                                     </>

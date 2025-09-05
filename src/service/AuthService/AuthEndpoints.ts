@@ -6,6 +6,7 @@ const AUTH_API_ENDPOINTS = {
     FORGOT_PASSWORD: "/Auth/ResetPassword",
     FETCH_LOGGED_USER_DETAILS: "/Auth/GetProfileDetails",
     UPDATE_PROFILE: "/Auth/UpdateProfile",
-    FETCH_HISTORY_ASSIGNMENTS: "/Project/FetchProjectHistory"
+    FETCH_HISTORY_ASSIGNMENTS: "/Project/FetchProjectHistory",
+    FETCH_SCHOOLWISE_CLASSES: "/Class/GetSchoolsWithClassesAndSections"
 };
 export default AUTH_API_ENDPOINTS;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CommonCard from "../../components/common-component/Card";
 import CommonInput from "../../components/common-component/Input";
 import CustomButton from "../../components/common-component/Button";
@@ -14,10 +14,13 @@ const CompleteProfile = () => {
     const [isCompleteProfile, setIsCompleteProfile] = useState(false);
     const [profileData, setProfileData] = useState({
         name: "",
-        school: "",
-        className: "",
-        section: ""
+        schoolId: "",
+        classId: "",
+        sectionId: ""
     })
+    const [schoolOptions, setSchoolOptions] = useState<any[]>([]);
+    const [classOptions, setClassOptions] = useState<any[]>([]);
+    const [sectionOptions, setSectionOptions] = useState<any[]>([]);
     const [password, setPassword] = useState({
         password: "",
         confirmPassword: ""
@@ -31,17 +34,22 @@ const CompleteProfile = () => {
         setUserType(value || "student");
     };
 
+    console.log('profileData', profileData)
+
     const handleUpdateProfile = async () => {
+        debugger
         const { value } = await Preferences.get({ key: "credential" })
         const { value: userType } = await Preferences.get({ key: "userType" })
-        const credentialValue = JSON.parse(value || "")
+        // const credentialValue = JSON.parse(value || "")
         const response = await AuthService.registerService({
             name: profileData.name,
-            schoolName: profileData.school,
-            className: profileData.className,
-            sectionName: profileData.section,
+            schoolName: profileData.schoolId,
+            className: profileData.classId,
+            sectionName: profileData.sectionId,
             role: userType,
-            ...credentialValue,
+            mobileNumber: "7990465461",
+            countryCode: "+91",
+            // ...credentialValue,
             password: password.password
         })
         debugger
@@ -57,9 +65,32 @@ const CompleteProfile = () => {
         }
     }
 
+    const fetchSchoolWiseClasses = async () => {
+        const response = await AuthService.fetchSchoolWiseClassesService();
+        if (response?.status === 200) {
+            const data = response?.data?.data;
+            // If API returns array of schools
+            if (Array.isArray(data)) {
+                setSchoolOptions(data.map((school: any) => ({
+                    label: school.schoolName,
+                    value: school.schoolId,
+                    classes: school.classes
+                })));
+            } else if (data?.schoolName) {
+                // If API returns a single school object
+                setSchoolOptions([{ label: data.schoolName, value: data.schoolId, classes: data.classes }]);
+            }
+        }
+    }
+
     useIonViewWillEnter(() => {
         loadUserType();
+        fetchSchoolWiseClasses();
     });
+
+    useEffect(() => {
+        fetchSchoolWiseClasses()
+    }, [])
 
     return (
         <>
@@ -101,48 +132,50 @@ const CompleteProfile = () => {
                                     <div style={{ marginTop: "10px" }}>
                                         <CustomDropdown
                                             textHeader="School"
-                                            value={profileData.school}
-                                            onChange={(val: any) => setProfileData({ ...profileData, school: val })}
-                                            options={[
-                                                "The Doon School, Dehradun",
-                                                "The Scindia School, Gwalior",
-                                                "Mayo College, Ajmer",
-                                                "Woodstock School, Mussoorie",
-                                                "The Lawrene School, Sanawar",
-                                                "Dhirubhai Ambani International School, Mumbai",
-                                                "Welham Girls' School, Dehradun"
-                                            ]} />
+                                            value={profileData.schoolId}
+                                            onChange={(option: any) => {
+                                                setProfileData({ ...profileData, schoolId: option.value, classId: '', sectionId: '' });
+                                                // Set class options for selected school
+                                                const selectedSchool = schoolOptions.find(s => s.value === option.value);
+                                                setClassOptions(selectedSchool?.classes?.map((cls: any) => ({
+                                                    label: `${cls.className} (${cls.classNumber})`,
+                                                    value: cls.classId,
+                                                    sections: cls.sections
+                                                })) || []);
+                                                setSectionOptions([]);
+                                            }}
+                                            options={schoolOptions}
+                                            isSearchable={true}
+                                        />
                                     </div>
                                     <div style={{ display: "flex", gap: "10px" }}>
                                         <CustomDropdown
                                             textHeader="Class"
-                                            value={profileData.className}
-                                            onChange={(val: any) => setProfileData({ ...profileData, className: val })}
-                                            options={[
-                                                "5th",
-                                                "6th",
-                                                "7th",
-                                                "8th",
-                                                "9th",
-                                                "10th",
-                                                "11th",
-                                                "12th"
-                                            ]}
+                                            value={profileData.classId}
+                                            onChange={(option: any) => {
+                                                setProfileData({ ...profileData, classId: option.value, sectionId: '' });
+                                                // Set section options for selected class
+                                                const selectedClass = classOptions.find(c => c.value === option.value);
+                                                setSectionOptions(selectedClass?.sections?.map((sec: any) => ({
+                                                    label: sec.sectionName,
+                                                    value: sec.sectionId
+                                                })) || []);
+                                            }}
+                                            options={classOptions}
+                                            isSearchable={true}
+                                            disabled={!profileData.schoolId}
                                         />
                                         <CustomDropdown
                                             textHeader="Section"
-                                            value={profileData.section}
-                                            onChange={(val: any) => setProfileData({ ...profileData, section: val })}
-                                            options={[
-                                                "A",
-                                                "B",
-                                                "C",
-                                                "D",
-                                            ]}
+                                            value={profileData.sectionId}
+                                            onChange={(option: any) => setProfileData({ ...profileData, sectionId: option.value })}
+                                            options={sectionOptions}
+                                            isSearchable={true}
+                                            disabled={!profileData.classId}
                                         />
                                     </div>
                                     <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "10px" }}>
-                                        <CustomButton btnText="Continue" background="#D929FF" onClick={() => { setIsCompleteProfile(true) }} style={{ width: "auto" }} disable={!profileData.name || !profileData.school || !profileData.className || !profileData.section} />
+                                        <CustomButton btnText="Continue" background="#D929FF" onClick={() => { setIsCompleteProfile(true) }} style={{ width: "auto" }} disable={!profileData.name || !profileData.schoolId || !profileData.classId || !profileData.sectionId} />
                                     </div>
                                 </div>
                             </CommonCard>

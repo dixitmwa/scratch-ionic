@@ -8,11 +8,12 @@ import SearchInput from "../components/common-component/SearchInput";
 import AssignmentService from "../service/AssignmentService/AssignmentService";
 import Loader from "../components/common-component/Loader";
 import { useSection } from "../context/SectionContext";
+import { Preferences } from "@capacitor/preferences";
 
 const AssignmentUpcomingPage = () => {
     const history = useHistory()
     const { setSectionId } = useSection();
-    const [assignmentList, setAssignmentList] = useState([{}, {}, {}])
+    const [assignmentList, setAssignmentList] = useState([])
     const [inputValue, setInputValue] = useState("");
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +27,8 @@ const AssignmentUpcomingPage = () => {
         setSearchTimeout(timeout);
     };
 
-    const handleViewDetails = (item: any) => {
+    const handleViewDetails = async (item: any) => {
+        await Preferences.set({ key: "backPage", value: "upcoming" })
         setSectionId(item.id);
         history.push("/tabs/assignment/details");
     }
@@ -92,35 +94,43 @@ const AssignmentUpcomingPage = () => {
                 </div>
                 <>
                     {
-                        assignmentList.map((item: any, index: number) => {
-                            return (
-                                <ChipCard textTransform={true} count={index + 1} title={
-                                    <div style={{ display: "flex", flexDirection: "column" }}>
-                                        <p
-                                            style={{
+                        assignmentList.length === 0 ? (
+                            <div style={{ width: "100%", textAlign: "center", color: "#607E9C", fontSize: "20px", fontWeight: "bold", marginTop: "40px" }}>
+                                Assignment not found
+                            </div>
+                        ) : (
+                            assignmentList.map((item: any, index: number) => {
+                                return (
+                                    <ChipCard textTransform={true} count={index + 1} title={
+                                        <div style={{ display: "flex", flexDirection: "column" }}>
+                                            <p
+                                                style={{
+                                                    margin: "0px",
+                                                    fontWeight: 600,
+                                                    fontSize: "20px",
+                                                    whiteSpace: "nowrap",
+                                                    overflow: "hidden",
+                                                    textOverflow: "ellipsis",
+                                                    maxWidth: "180px"
+                                                }}
+                                            >
+                                                {item?.title}
+                                            </p>
+                                            <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
+                                            <p style={{
                                                 margin: "0px",
-                                                fontWeight: 600,
-                                                fontSize: "20px",
+                                                fontSize: "16px",
                                                 whiteSpace: "nowrap",
                                                 overflow: "hidden",
                                                 textOverflow: "ellipsis",
                                                 maxWidth: "180px"
-                                            }}
-                                        >
-                                            {item?.title}
-                                        </p>
-                                        <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
-                                        <p style={{
-                                            margin: "0px",
-                                            fontSize: "16px",
-                                            whiteSpace: "nowrap",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            maxWidth: "180px"
-                                        }}>{item?.totalStudentsAssigned}/{item?.submittedCount} students submitted</p>
-                                    </div>} icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />} />
-                            )
-                        })
+                                            }}>{item?.totalStudentsAssigned}/{item?.submittedCount} students submitted</p>
+                                        </div>}
+                                        onClick={() => handleViewDetails(item)}
+                                        icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleViewDetails(item) }} />} />
+                                )
+                            })
+                        )
                     }
                     {/* <ChipCard textTransform={true} count={2}
                     title={

@@ -63,6 +63,12 @@ const LoginWithCode = () => {
         }
     }
 
+    const handleNavigateBack = () => {
+        setOtpSent(false)
+        setCode("")
+        history.push("/login-method");
+    }
+
     return (
         <>
             {/* <IonPage> */}
@@ -72,7 +78,7 @@ const LoginWithCode = () => {
                 display: "flex",
                 justifyContent: "space-around"
             }}>
-                <IonIcon icon={Back} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/login-method") }} />
+                <IonIcon icon={Back} color="primary" style={{ fontSize: '32px' }} onClick={() => { handleNavigateBack() }} />
                 <p
                     style={{
                         fontSize: "24px",

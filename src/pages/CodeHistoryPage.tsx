@@ -100,7 +100,7 @@ const CodeHistoryPage = () => {
                                 {
                                     listOfCodeHistory?.map((item: any, index: number) => {
                                         return (
-                                            <ChipCard textTransform={true} count={index + 1} title={`${item?.className} ${item?.classNumber}${item?.sectionName}`} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => handleOpenDetails(index)} />} />
+                                            <ChipCard textTransform={true} count={index + 1} title={`${!item?.className ? "Class :" : item?.className} ${item?.classNumber}${item?.sectionName}`} rightBorder={true} icon={<IonIcon icon={View} color="primary" style={{ fontSize: '32px' }} onClick={() => handleOpenDetails(index)} />} />
                                         )
                                     })
                                 }

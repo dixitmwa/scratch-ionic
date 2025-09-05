@@ -1,4 +1,4 @@
-import { IonButton, IonIcon, IonPage, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react';
+import { IonButton, IonIcon, IonPage, IonToast, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react';
 import { useEffect, useRef, useState } from 'react';
 import { attachRendererIfNone, disposeRenderer, getProjectBuffer, getSavedProjectBuffer, getUploadedProjectBuffer, getVMInstance } from '../scratchVMInstance';
 import '../css/playground.css'
@@ -17,14 +17,19 @@ import DownArrow from '../assets/down_arrow.svg'
 import LeftArrow from '../assets/left_arrow_playground.svg'
 import RightArrow from '../assets/right_arrow_playground.svg'
 import Jump from '../assets/jump.svg'
+import ClassRoomService from '../service/ClassroomService/ClassRoomService';
+import { useSection } from '../context/SectionContext';
 
 const PlaygroundPage = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const vm = getVMInstance();
     const router = useIonRouter()
-    const history = useHistory()
+    const history = useHistory();
+    const { projectId } = useSection();
     const [recording, setRecording] = useState(false);
     const [gameStarted, setGameStarted] = useState(false);
+    const [showMessage, setShowMessage] = useState(false);
+    const [message, setMessage] = useState("");
     const { status, startRecording, stopRecording, mediaBlobUrl } = useReactMediaRecorder({ video: true });
 
     const fetchProjectBuffer = async () => {
@@ -37,9 +42,22 @@ const PlaygroundPage = () => {
         vm.greenFlag();
     }
 
-    const stopGame = () => {
+    const stopGame = async () => {
         setGameStarted(false);
         vm.stopAll();
+        const { value } = await Preferences.get({ key: "buffer_base64" })
+        console.log('value', value);
+        const formData = new FormData();
+        debugger
+        if (projectId) {
+            formData.append("file", new Blob([base64ToUint8Array(value || "")], { type: 'application/octet-stream' }), "project.sb3");
+            const response = await ClassRoomService.submitProjectService(projectId, formData)
+            console.log('response', response)
+            if (response?.status === 200) {
+                setShowMessage(true);
+                setMessage("Assignment submitted successfully");
+            }
+        }
     }
 
     function base64ToUint8Array(base64) {
@@ -60,7 +78,7 @@ const PlaygroundPage = () => {
         // console.log("projectBuffer", new Uint8Array(projectBuffer));
 
         const { value: base64 } = await Preferences.get({ key: "buffer_base64" });
-debugger
+        debugger
         if (base64) {
             buffer = base64ToUint8Array(base64);
             console.log("Retrieved buffer:", buffer);
@@ -234,6 +252,7 @@ debugger
         // } else {
         //     console.warn("No uploaded project buffer found");
         // }
+
         lockOrientation();
         run()
 
@@ -289,48 +308,53 @@ debugger
 
     return (
         // <IonPage>
-            <div className="playground-wrapper">
-                {/* Left Control Buttons */}
-                <div className="left" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: true })
-                    } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: false })
-                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: true })
-                    } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: false })
-                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                </div>
-
-                {/* Center Game Canvas */}
-                <div className="canvas-container">
-                    <canvas ref={canvasRef} className="playground-canvas" />
-                </div>
-
-                {/* Right Control Buttons */}
-                <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    <CustomButton btnText='' icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={stopGame} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })
-                    } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })
-                    } background="#FFFFFF" txtColor="#FF8429" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={LeftArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: true })
-                    } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })
-                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                    <CustomButton btnText='' icon={<IonIcon icon={RightArrow} style={{ fontSize: '32px' }} />} onClick={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: true })
-                    } onRelease={() =>
-                        vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })
-                    } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
-                </div>
+        <div className="playground-wrapper">
+            {/* Left Control Buttons */}
+            <div className="left" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={Home} style={{ fontSize: '32px' }} />} onClick={handleBack} background="#FFFFFF" txtColor="#2966FF" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={UpArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: true })
+                } onRelease={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowUp', isDown: false })
+                } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={DownArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: true })
+                } onRelease={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowDown', isDown: false })
+                } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
             </div>
+
+            {/* Center Game Canvas */}
+            <div className="canvas-container">
+                <canvas ref={canvasRef} className="playground-canvas" />
+            </div>
+
+            {/* Right Control Buttons */}
+            <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <CustomButton btnText='' icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={stopGame} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })
+                } onRelease={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: false })
+                } background="#FFFFFF" txtColor="#FF8429" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={LeftArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: true })
+                } onRelease={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowLeft', isDown: false })
+                } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+                <CustomButton btnText='' icon={<IonIcon icon={RightArrow} style={{ fontSize: '32px' }} />} onClick={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: true })
+                } onRelease={() =>
+                    vm.runtime.ioDevices['keyboard'].postData({ key: 'ArrowRight', isDown: false })
+                } background="#FFFFFF" txtColor="#29B0FF" style={{ width: "60px", padding: "5px" }} />
+            </div>
+            <IonToast
+                isOpen={showMessage}
+                onDidDismiss={() => setShowMessage(false)}
+                message={message}
+                duration={2000}></IonToast>
+        </div>
         // </IonPage>
     );
 };

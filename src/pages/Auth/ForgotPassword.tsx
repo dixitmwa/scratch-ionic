@@ -35,12 +35,12 @@ const ForgotPassword = () => {
     });
 
     const fetchInitPage = async () => {
-        await Preferences.set({ key: "initPage", value: "accept-code" })
+        //     await Preferences.set({ key: "initPage", value: "accept-code" })
     }
 
-    useEffect(()=>{
+    useEffect(() => {
         fetchInitPage()
-    },[])
+    }, [])
 
     const handleSentOtp = async () => {
         const response = await AuthService.sentOtpService({

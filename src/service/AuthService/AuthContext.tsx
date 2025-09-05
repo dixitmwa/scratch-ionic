@@ -14,7 +14,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const checkAuth = async () => {
-    debugger
     const { value } = await Preferences.get({ key: 'auth' });
     setIsAuthenticated(!!value);
   };
@@ -25,6 +24,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useIonViewDidEnter(() => {
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
     checkAuth();
   }, []);
 

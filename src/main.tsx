@@ -15,11 +15,14 @@ setupIonicReact({
 
 defineCustomElements(window);
 
-ReactDOM.render(
-  <React.StrictMode>
-    <SectionProvider>
+function Main() {
+  return (
+    <React.StrictMode>
+      <SectionProvider>
         <App />
-    </SectionProvider>
-  </React.StrictMode>,
-  document.getElementById('root')
-);
+      </SectionProvider>
+    </React.StrictMode>
+  );
+}
+
+ReactDOM.render(<Main />, document.getElementById('root'));

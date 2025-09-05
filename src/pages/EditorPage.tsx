@@ -13,9 +13,11 @@ import ScannerSvg from "../assets/scanner.svg";
 import { informationCircleOutline } from "ionicons/icons";
 import CustomButton from "../components/common-component/Button";
 import InfoScanner from "../assets/info_scanner.svg"
+import { useSection } from "../context/SectionContext";
 
 export default function EditorPage() {
   const history = useHistory();
+  const { setProjectId } = useSection();
   const vm = useScratchVm();
   const containerRef = useRef(null);
   const [imageUploaded, setImageUploaded] = useState(false);
@@ -26,6 +28,7 @@ export default function EditorPage() {
 
   const takePhoto = async () => {
     setLoading(true);
+    setProjectId("");
     history.push("/tabs/scratch-editor");
     return
     const photo = await Camera.getPhoto({
@@ -90,8 +93,9 @@ export default function EditorPage() {
 
   const scanDocument = async () => {
     setLoading(true);
+    setProjectId("");
     history.push("/tabs/scratch-editor");
-    return 
+    return
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
@@ -224,9 +228,9 @@ export default function EditorPage() {
     fetchUserType()
   })
 
-  useEffect(()=>{
+  useEffect(() => {
     fetchUserType()
-  },[])
+  }, [])
 
   return (
     <ScratchProvider>
@@ -336,9 +340,9 @@ export default function EditorPage() {
                 />
               )
             }
-            <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
+            {/* <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
               Take Photo
-            </Button>
+            </Button> */}
             {/* <IonButton
               expand="block"
               onClick={scanDocument}

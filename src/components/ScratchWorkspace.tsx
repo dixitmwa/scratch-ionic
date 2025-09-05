@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import ScratchBlocks from 'scratch-blocks'; // or 'blockly'
-import './blocks.css'; // Ensure this file contains relevant styles, e.g. `.blocklyWorkspace`
-import { getProjectFile, loadProject, setLastSavedProjectData } from './commonfunction';
-import { IonButton, IonIcon, IonPage, useIonRouter, useIonViewDidEnter } from '@ionic/react';
+import ScratchBlocks from 'scratch-blocks';
+import './blocks.css';
+import { loadProject, setLastSavedProjectData } from './commonfunction';
+import { IonIcon, IonPage, useIonRouter, useIonViewDidEnter } from '@ionic/react';
 import { attachRendererIfNone, disposeRenderer, getProjectBuffer, getVMInstance, saveCurrentProjectBuffer, setUploadedProjectBuffer } from '../scratchVMInstance';
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Preferences } from '@capacitor/preferences';
@@ -10,9 +10,11 @@ import CommonCard from './common-component/Card';
 import CustomButton from './common-component/Button';
 import { chevronForwardOutline, reloadOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router';
+import { useSection } from '../context/SectionContext';
 
 export default function ScratchWorkspace() {
   const blockRef = useRef(null);
+  const { setProjectId, projectId } = useSection();
   const workspaceRef = useRef(null);
   const canvasRef = useRef(null);
   const vmRef = useRef(null);
@@ -22,6 +24,8 @@ export default function ScratchWorkspace() {
   const [fileUploaded, setFileUploaded] = useState(false);
   const [selectedSpriteId, setSelectedSpriteId] = useState(null);
   const selectedSpiId = useRef(null)
+  // const { projectId } = useSection();
+
 
   const lockOrientation = async () => {
     try {
@@ -317,7 +321,6 @@ export default function ScratchWorkspace() {
         console.error('Error loading project:', error);
       }
     }
-
   };
 
   function uint8ArrayToBase64(uint8Array) {
@@ -376,6 +379,7 @@ export default function ScratchWorkspace() {
   };
 
   const backToScan = () => {
+    setProjectId("");
     history.push('/tabs/editor')
   }
 
@@ -397,7 +401,7 @@ export default function ScratchWorkspace() {
     handleUpload();
   })
 
-  console.log("selectedSpriteId", selectedSpriteId);
+  console.log("selectedSpriteId", selectedSpriteId, blockRef.current, vmRef.current?.runtime?.targets);
 
   return (
     // <IonPage>
@@ -406,7 +410,7 @@ export default function ScratchWorkspace() {
       height: "94vh",
       overflowY: "scroll"
     }}>
-      <CommonCard style={{ padding: "20px", maxWidth: "100%", minWidth: "340px" }}>
+      <CommonCard style={{ padding: "10px", maxWidth: "100%", minWidth: "340px" }}>
         <div
           ref={blockRef}
           style={{

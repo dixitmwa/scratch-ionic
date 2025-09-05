@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useAuth } from '../service/AuthService/AuthContext';
 import { Route, Redirect, RouteProps, useLocation, useHistory } from 'react-router-dom';
 import { Preferences } from '@capacitor/preferences';
 import { IonContent, IonPage, useIonViewDidEnter } from '@ionic/react';

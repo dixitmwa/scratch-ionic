@@ -116,7 +116,7 @@ const AssignmentUpcomingPage = () => {
                                             >
                                                 {item?.title}
                                             </p>
-                                            <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
+                                            <p style={{ margin: "0px", fontSize: "16px" }}>Class : {(item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName) || "N/A"}</p>
                                             <p style={{
                                                 margin: "0px",
                                                 fontSize: "16px",
@@ -132,14 +132,6 @@ const AssignmentUpcomingPage = () => {
                             })
                         )
                     }
-                    {/* <ChipCard textTransform={true} count={2}
-                    title={
-                        <div style={{ display: "flex", flexDirection: "column" }}>
-                            <p style={{ margin: "0px", fontWeight: 600, fontSize: "20px" }}>Environment</p>
-                            <p style={{ margin: "0px", fontSize: "16px" }}>Class : 4A</p>
-                            <p style={{ margin: "0px", fontSize: "16px" }}>12 students submitted</p>
-                        </div>
-                    } icon={<IonIcon icon={RightArrow} color="primary" style={{ fontSize: '32px' }} onClick={() => { history.push("/tabs/classroom/details") }} />} /> */}
                 </>
             </div>)
     )

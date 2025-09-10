@@ -19,6 +19,8 @@ import ScratchBlocks from 'scratch-blocks';
 import '../components/blocks.css';
 import { ScreenOrientation } from "@capacitor/screen-orientation";
 import { rootUrl } from "../service/api";
+import CommonPopup from "../components/common-component/Popup";
+import CommonCard from "../components/common-component/Card";
 
 const AssignmentBlockViewPage = () => {
     const { sectionId, selectedAssignmentItem } = useSection();
@@ -42,6 +44,20 @@ const AssignmentBlockViewPage = () => {
     const [selectedSpriteId, setSelectedSpriteId] = useState(null);
     const selectedSpiId = useRef(null)
     const [selectedAnswer, setSelectedAnswer] = useState<"correct" | "wrong" | null>(null);
+    // Set selectedAnswer based on selectedAssignmentItem.isCorrect
+    useEffect(() => {
+        if (selectedAssignmentItem?.isCorrect === true) {
+            setSelectedAnswer("correct");
+        } else if (selectedAssignmentItem?.isCorrect === false) {
+            setSelectedAnswer("wrong");
+        } else {
+            setSelectedAnswer(null);
+        }
+    }, [selectedAssignmentItem]);
+    const [showConfirmPopup, setShowConfirmPopup] = useState(false);
+    const [pendingAnswer, setPendingAnswer] = useState<"correct" | "wrong" | null>(null);
+    const [popupLoading, setPopupLoading] = useState(false);
+    const [popupMessage, setPopupMessage] = useState("");
     const [backPage, setBackPage] = useState<string>("");
     const [assignmentDetails, setAssignmentDetails] = useState<any>({});
     const [filteredAssignments, setFilteredAssignments] = useState<any[]>([]);
@@ -453,9 +469,42 @@ const AssignmentBlockViewPage = () => {
     };
 
     const handleAnswerClick = (answer: "correct" | "wrong") => {
-        console.log(`User selected: ${answer}`);
-        setSelectedAnswer(answer);
-    }
+        // If clicking 'correct' and already correct, do nothing
+        if (answer === "correct" && selectedAnswer === "correct") {
+            return;
+        }
+        // If clicking 'wrong' and already wrong, do nothing
+        if (answer === "wrong" && selectedAnswer === "wrong") {
+            return;
+        }
+        setPendingAnswer(answer);
+        setShowConfirmPopup(true);
+    };
+
+    const handleConfirmSubmit = async () => {
+        setPopupLoading(true);
+        try {
+            const StudentId = selectedAssignmentItem?.studentId;
+            const ProjectId = sectionId;
+            const response = await AssignmentService.validateAnswerService({
+                StudentId,
+                ProjectId,
+                isCorrect: pendingAnswer === "correct" ? true : false
+            });
+            if (response?.status === 200) {
+                setPopupMessage("Answer submitted successfully.");
+                setSelectedAnswer(pendingAnswer);
+            } else {
+                setPopupMessage("Failed to submit answer.");
+            }
+        } catch (e) {
+            setPopupMessage("Error submitting answer.");
+        } finally {
+            setPopupLoading(false);
+            setShowConfirmPopup(false);
+            setPopupMessage("");
+        }
+    };
 
     const handlePrev = () => {
         debugger
@@ -565,24 +614,41 @@ const AssignmentBlockViewPage = () => {
                 <div style={{ display: 'flex', gap: "5px", justifyContent: 'space-between', marginTop: '8px' }}>
                     <CustomButton
                         btnText="wrong"
-                        txtColor={selectedAnswer === "wrong" ? "#FFFFFF" :
-                            "#607E9C"}
+                        txtColor={selectedAnswer === "wrong" ? "#FFFFFF" : "#607E9C"}
                         background={selectedAnswer === "wrong" ? "#FF297A" : "#FFFFFF"}
-                        style={{
-                            padding: '12px 20px',
-                        }}
-                        onClick={() => { handleAnswerClick("wrong") }}
+                        style={{ padding: '12px 20px', border: selectedAnswer === "wrong" ? "2px solid #FF297A" : "2px solid #607E9C" }}
+                        onClick={() => handleAnswerClick("wrong")}
                     />
                     <CustomButton
                         btnText="correct"
                         txtColor={selectedAnswer === "correct" ? "#FFFFFF" : "#607E9C"}
                         background={selectedAnswer === "correct" ? "#29B0FF" : "#FFFFFF"}
-                        style={{
-                            padding: '12px 20px',
-                        }}
-                        onClick={() => { handleAnswerClick("correct") }}
+                        style={{ padding: '12px 20px', border: selectedAnswer === "correct" ? "2px solid #29B0FF" : "2px solid #607E9C" }}
+                        onClick={() => handleAnswerClick("correct")}
                     />
                 </div>
+                <CommonPopup isOpen={showConfirmPopup} setIsOpen={setShowConfirmPopup}>
+                    <CommonCard headerText="Confirm Submission">
+                        <h3 style={{ color: "#607E9C", margin: "0px 0px 10px 0px" }}>Are you sure you want to submit this answer?</h3>
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'center' }}>
+                            <CustomButton
+                                btnText="No"
+                                background="#607E9C"
+                                txtColor="#fff"
+                                onClick={() => setShowConfirmPopup(false)}
+                                style={{ padding: '8px 24px' }}
+                            />
+                            <CustomButton
+                                btnText={popupLoading ? "Submitting..." : "Yes"}
+                                background="#29B0FF"
+                                txtColor="#fff"
+                                onClick={handleConfirmSubmit}
+                                style={{ padding: '8px 24px' }}
+                                disable={popupLoading}
+                            />
+                        </div>
+                    </CommonCard>
+                </CommonPopup>
             </div>
         </div>
 

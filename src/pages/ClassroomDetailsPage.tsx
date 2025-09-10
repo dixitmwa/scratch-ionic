@@ -10,22 +10,6 @@ import SearchInput from "../components/common-component/SearchInput";
 import { useEffect, useRef, useState } from "react";
 import ClassRoomService from "../service/ClassroomService/ClassRoomService";
 import CodeLinkService from "../service/CodeLinkService/CodeLinkService";
-
-interface Student {
-    id: number;
-    name: string;
-    mobileNumber?: string;
-}
-
-interface ClassDetails {
-    name: string;
-    number: string;
-    division: string;
-    className?: string;
-    classNumber?: string;
-    classId?: string;
-    id?: string;
-}
 import CommonInput from "../components/common-component/Input";
 import CommonPopup from "../components/common-component/Popup";
 import CommonCard from "../components/common-component/Card";

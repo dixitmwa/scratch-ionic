@@ -68,7 +68,7 @@ const AssignmentHistoryPage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: "85vh",
             overflowY: "scroll"
         }}>
             <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>
@@ -105,7 +105,7 @@ const AssignmentHistoryPage = () => {
                                         textOverflow: "ellipsis",
                                         maxWidth: "180px"
                                     }}>{item?.title}</p>
-                                    <p style={{ margin: "0px", fontSize: "16px" }}>Class : {item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName}</p>
+                                    <p style={{ margin: "0px", fontSize: "16px" }}>Class : {(item?.assignments?.[0]?.classNumber + item?.assignments?.[0]?.sectionName) || "N/A"}</p>
                                     <p
                                         style={{
                                             margin: "0px",

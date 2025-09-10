@@ -2,8 +2,10 @@ import { Preferences } from "@capacitor/preferences";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 // import { useHistory } from "react-router";
 const instance = axios.create();
-const baseUrl = "https://9d296a027691.ngrok-free.app/api";
-export const rootUrl = "https://9d296a027691.ngrok-free.app/";
+const baseUrl = "https://d2ebe0d70d76.ngrok-free.app/api";
+export const rootUrl = "https://d2ebe0d70d76.ngrok-free.app/";
+// const baseUrl = "http://192.168.1.48:7055/api";
+// export const rootUrl = "http://192.168.1.48:7055/";
 // const history = useHistory();
 
 instance.interceptors.request.use(

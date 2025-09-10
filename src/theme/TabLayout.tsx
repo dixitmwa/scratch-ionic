@@ -98,19 +98,19 @@ const TabsLayout = () => {
               <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
                 <IonIcon icon={ScannerTab} />
                 {/* <img src={Scanner}/> */}
-                <IonLabel>Playground</IonLabel>
+                <IonLabel className="custom-tab-label">Playground</IonLabel>
               </IonTabButton>
               <IonTabButton tab="history" href="/tabs/history" className={location.pathname.startsWith("/tabs/history") ? "active-tab" : ""}>
                 <IonIcon icon={HistoryTab} />
-                <IonLabel>My Library</IonLabel>
+                <IonLabel className="custom-tab-label">My Library</IonLabel>
               </IonTabButton>
               <IonTabButton tab="project" href="/tabs/project" className={location.pathname.startsWith("/tabs/project") ? "active-tab" : ""}>
                 <IonIcon icon={ProjectTab} />
-                <IonLabel>Project</IonLabel>
+                <IonLabel className="custom-tab-label">Project</IonLabel>
               </IonTabButton>
               <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
                 <IonIcon icon={ProfileTab} />
-                <IonLabel>Profile</IonLabel>
+                <IonLabel className="custom-tab-label">Profile</IonLabel>
               </IonTabButton>
             </IonTabBar>
           )
@@ -122,19 +122,19 @@ const TabsLayout = () => {
               <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
                 <IonIcon icon={ScannerTab} />
                 {/* <img src={Scanner}/> */}
-                <IonLabel>Playground</IonLabel>
+                <IonLabel className="custom-tab-label">Playground</IonLabel>
               </IonTabButton>
               <IonTabButton tab="classroom" href="/tabs/classroom" className={location.pathname.startsWith("/tabs/classroom") ? "active-tab" : ""}>
                 <IonIcon icon={ClassroomTab} />
-                <IonLabel>Classroom</IonLabel>
+                <IonLabel className="custom-tab-label">Classroom</IonLabel>
               </IonTabButton>
               <IonTabButton tab="assignment" href="/tabs/assignment" className={location.pathname.startsWith("/tabs/assignment") ? "active-tab" : ""}>
                 <IonIcon icon={ProjectTab} />
-                <IonLabel>Assignments</IonLabel>
+                <IonLabel className="custom-tab-label">Assignments</IonLabel>
               </IonTabButton>
               <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
                 <IonIcon icon={ProfileTab} />
-                <IonLabel>Profile</IonLabel>
+                <IonLabel className="custom-tab-label">Profile</IonLabel>
               </IonTabButton>
             </IonTabBar>
           )

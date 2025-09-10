@@ -24,11 +24,14 @@ const CustomButton = ({
     isLoading = false,
     ...props
 }: CustomButtonProps) => {
+    const buttonStyle = disable
+        ? { background, color: txtColor, opacity: 0.5, pointerEvents: 'none' as React.CSSProperties['pointerEvents'], ...style, transform: undefined }
+        : { background, color: txtColor, opacity: 1, ...style };
     return (
         <button
             onClick={onClick}
             className="role-button"
-            style={{ background: background, color: txtColor, opacity: disable ? 0.5 : 1, ...style }}
+            style={buttonStyle}
             disabled={disable || isLoading}
             {...props}
         >
@@ -48,7 +51,7 @@ const CustomButton = ({
                     </>
                 )
             }
-        </button >
+        </button>
     )
 }
 

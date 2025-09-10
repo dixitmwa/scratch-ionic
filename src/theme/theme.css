@@ -32,6 +32,7 @@
   position: relative;
   bottom: 0vh;
   z-index: -1;
+  font-weight: 400;
 }
 
 .custom-tab-bar ion-tab-button {
@@ -50,4 +51,9 @@
 
 .custom-tab-bar ion-tab-button.active-tab ion-icon {
   filter: brightness(0) invert(1);
+}
+
+.custom-tab-label{
+  font-size: 12px;
+  font-weight: 500;
 }

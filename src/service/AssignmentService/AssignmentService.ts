@@ -14,5 +14,9 @@ export default {
     fetchAssignmentByIdService: (id: string) => {
         const url = `${ASSIGNMENT_API_ENDPOINTS.FETCH_ASSIGNMENT_BY_ID}/${id}`;
         return doFetch(url, REQUEST_METHODS.GET);
-    }
+    },
+    validateAnswerService: (details: any) =>
+        doFetch(ASSIGNMENT_API_ENDPOINTS.VALIDATE_ANSWER, REQUEST_METHODS.POST, details),
+    updateAssignmentService: (details: any) =>
+        doFetch(ASSIGNMENT_API_ENDPOINTS.UPDATE_ASSIGNMENT, REQUEST_METHODS.POST, details),
 }

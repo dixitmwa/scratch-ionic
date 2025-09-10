@@ -64,7 +64,8 @@
     "scratch-sb1-converter": "^2.0.191",
     "scratch-storage": "^4.0.188",
     "scratch-svg-renderer": "^3.0.140",
-    "scratch-vm": "^5.0.300"
+    "scratch-vm": "^5.0.300",
+    "screenrecorder": "file:screenrecorder"
   },
   "devDependencies": {
     "@capacitor/cli": "7.4.2",

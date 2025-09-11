@@ -29,8 +29,8 @@ const ProjectDetailsPage = () => {
     const takePhoto = async () => {
         setLoading(true);
         await Preferences.set({ key: "projectId", value: projectId || "" })
-        history.push("/tabs/scratch-editor");
-        return
+        // history.push("/tabs/scratch-editor");
+        // return
         const photo = await Camera.getPhoto({
             resultType: CameraResultType.Base64,
             source: CameraSource.Camera,

@@ -29,8 +29,8 @@ export default function EditorPage() {
   const takePhoto = async () => {
     setLoading(true);
     setProjectId("");
-    history.push("/tabs/scratch-editor");
-    return
+    // history.push("/tabs/scratch-editor");
+    // return
     const photo = await Camera.getPhoto({
       resultType: CameraResultType.Base64,
       source: CameraSource.Camera,
@@ -94,8 +94,8 @@ export default function EditorPage() {
   const scanDocument = async () => {
     setLoading(true);
     setProjectId("");
-    history.push("/tabs/scratch-editor");
-    return
+    // history.push("/tabs/scratch-editor");
+    // return
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
@@ -201,8 +201,8 @@ export default function EditorPage() {
         // setProjectFile(data?.test_url)
         // setShowLoading(false);
         // router.push('/editor', 'root');
-        setLoading(false);
         history.push("/tabs/scratch-editor");
+        setLoading(false);
 
         ionRouter.push("/scratch-editor", "forward", "replace");
         setImageUploaded(true);

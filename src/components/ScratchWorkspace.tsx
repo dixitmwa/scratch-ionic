@@ -151,7 +151,6 @@ export default function ScratchWorkspace() {
 
   const handleProjectLoaded = () => {
     const spriteTargets = vmRef.current?.runtime?.targets.filter(t => t.isSprite);
-    debugger
     if (!selectedSpiId.current) {
       vmRef.current?.setEditingTarget(spriteTargets[1].id);
       updateBlocksForSprite(spriteTargets[1].id);
@@ -227,7 +226,6 @@ export default function ScratchWorkspace() {
   };
 
   const handleSpriteClick = (spriteId: any) => {
-    debugger
     selectedSpiId.current = spriteId;
     setSelectedSpriteId(spriteId);
     vmRef.current?.setEditingTarget(spriteId);
@@ -274,12 +272,20 @@ export default function ScratchWorkspace() {
   }
 
   const handleUpload = async () => {
+    // Ensure renderer is attached before loading project
+    // if (canvasRef.current) {
+    //   attachRendererIfNone(canvasRef.current);
+    //   // Ensure renderer is set on VM
+    //   // if (!vmRef.current.renderer && window.scratchVMRenderer) {
+    //   //   vmRef.current.renderer = window.scratchVMRenderer;
+    //   // }
+    // }
     const { value: isBackFromPlayground } = await Preferences.get({ key: 'isBackFromPlayground' })
     if (isBackFromPlayground == 'true') {
       try {
         await Preferences.set({ key: 'isBackFromPlayground', value: 'false' });
         const { value: base64 } = await Preferences.get({ key: "buffer_base64" });
-        const buffer = base64ToUint8Array(base64);
+        const buffer = base64 ? base64ToUint8Array(base64) : new Uint8Array();
         setFileUploaded(true)
         await loadProject(vmRef.current, buffer);
         setUploadedProjectBuffer(buffer)
@@ -290,8 +296,13 @@ export default function ScratchWorkspace() {
     } else {
       const { value } = await Preferences.get({ key: 'project' })
       console.log("value->", value)
-      // const projectUrl = value;
-      const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
+      const projectUrl = value;
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3%201";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d68a6771852c4d68b7093a62e1adb1f6";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/9fd86316cd1a44e881e7a2fa4d097179";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/8b085c41bce44096827dcd2402b1ad57";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/6373b10de75240f5847d3c86156dc066";
+      // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/49b33c1f68664dc9b4af7dadbade5357";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3";
       // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
@@ -310,12 +321,12 @@ export default function ScratchWorkspace() {
         const arrayBuffer = await response.arrayBuffer();
         const buffer = new Uint8Array(arrayBuffer);
         const base64 = uint8ArrayToBase64(buffer);
-        // await Preferences.set({ key: "buffer_base64", value: base64 });
-        // const file = e.target.files[0];
-        // const buffer = new Uint8Array(await file.arrayBuffer());
-        setFileUploaded(true)
+        // if (blockRef.current) {
+        //   attachRendererIfNone(blockRef.current);
+        // }
+        setFileUploaded(true);
         await loadProject(vmRef.current, buffer);
-        setUploadedProjectBuffer(buffer)
+        setUploadedProjectBuffer(buffer);
       } catch (error) {
         setFileUploaded(false)
         console.error('Error loading project:', error);

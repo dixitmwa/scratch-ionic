@@ -66,30 +66,28 @@ const TabsLayout = () => {
   }, [location.pathname, history]);
 
   return (
-    <MainLayout>
+    // <MainLayout>
       <IonTabs>
         <IonRouterOutlet>
-          <Route exact path="/tabs/editor" component={EditorPage} />
-          <Route exact path="/tabs/editor/my-library" component={MyLibraryPage} />
-          <Route exact path="/tabs/scratch-editor" component={ScratchWorkspace} />
-          <Route exact path="/tabs/history" component={HistoryPage} />
-          <Route exact path="/tabs/project" component={ProjectPage} />
-          <Route exact path="/tabs/project/details" component={ProjectDetailsPage} />
-          <Route exact path="/tabs/profile" component={ProfilePage} />
-          <Route exact path="/tabs/profile/code-history" component={CodeHistoryPage} />
-          <Route exact path="/tabs/playground" component={PlaygroundPage} />
-          <Route exact path="/tabs/classroom" component={ClassroomPage} />
-          <Route exact path="/tabs/classroom/create" component={ClassroomCreatePage} />
-          <Route exact path="/tabs/classroom/details" component={ClassroomDetailsPage} />
-          <Route exact path="/tabs/assignment" component={AssignmentPage} />
-          <Route exact path="/tabs/assignment/create" component={AssignmentCreatePage} />
-          <Route exact path="/tabs/assignment/upcoming" component={AssignmentUpcomingPage} />
-          <Route exact path="/tabs/assignment/history" component={AssignmentHistoryPage} />
-          <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} />
-          <Route exact path="/tabs/assignment/project-view" component={AssignmentBlockViewPage} />
-          <Route exact path="/tabs/assignment/project-video" component={AssignmentBlockVideoPage} />
-          {/* <Route exact path="/tabs/assignment/details" component={AssignmentDetailsPage} /> */}
-          {/* <Redirect exact from="/tabs" to="/tabs/home" /> */}
+          <Route exact path="/tabs/editor" render={() => <IonPage><EditorPage /></IonPage>} />
+          <Route exact path="/tabs/editor/my-library" render={() => <IonPage><MyLibraryPage /></IonPage>} />
+          <Route exact path="/tabs/scratch-editor" render={() => <IonPage><ScratchWorkspace /></IonPage>} />
+          <Route exact path="/tabs/history" render={() => <IonPage><HistoryPage /></IonPage>} />
+          <Route exact path="/tabs/project" render={() => <IonPage><ProjectPage /></IonPage>} />
+          <Route exact path="/tabs/project/details" render={() => <IonPage><ProjectDetailsPage /></IonPage>} />
+          <Route exact path="/tabs/profile" render={() => <IonPage><ProfilePage /></IonPage>} />
+          <Route exact path="/tabs/profile/code-history" render={() => <IonPage><CodeHistoryPage /></IonPage>} />
+          <Route exact path="/tabs/playground" render={() => <IonPage><PlaygroundPage /></IonPage>} />
+          <Route exact path="/tabs/classroom" render={() => <IonPage><ClassroomPage /></IonPage>} />
+          <Route exact path="/tabs/classroom/create" render={() => <IonPage><ClassroomCreatePage /></IonPage>} />
+          <Route exact path="/tabs/classroom/details" render={() => <IonPage><ClassroomDetailsPage /></IonPage>} />
+          <Route exact path="/tabs/assignment" render={() => <IonPage><AssignmentPage /></IonPage>} />
+          <Route exact path="/tabs/assignment/create" render={() => <IonPage><AssignmentCreatePage /></IonPage>} />
+          <Route exact path="/tabs/assignment/upcoming" render={() => <IonPage><AssignmentUpcomingPage /></IonPage>} />
+          <Route exact path="/tabs/assignment/history" render={() => <IonPage><AssignmentHistoryPage /></IonPage>} />
+          <Route exact path="/tabs/assignment/details" render={() => <IonPage><AssignmentDetailsPage /></IonPage>} />
+          <Route exact path="/tabs/assignment/project-view" render={() => <IonPage><AssignmentBlockViewPage /></IonPage>} />
+          <Route exact path="/tabs/assignment/project-video" render={() => <IonPage><AssignmentBlockVideoPage /></IonPage>} />
         </IonRouterOutlet>
 
         {
@@ -140,7 +138,7 @@ const TabsLayout = () => {
           )
         }
       </IonTabs>
-    </MainLayout>
+    // </MainLayout>
   );
 };
 

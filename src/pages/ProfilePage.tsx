@@ -115,11 +115,10 @@ const ProfilePage = () => {
         setLoadingLogOut(true);
         // Dismiss all modals and reset UI state BEFORE logout
         setIsModalOpen(false);
-        logoutModalRef.current?.dismiss();
         // Wait for modal to close before logout
+        await logout();
         setTimeout(async () => {
-            await logout();
-            // After logout, navigate to login page
+            logoutModalRef.current?.dismiss();
             history.replace('/login');
             setLoadingLogOut(false);
         }, 300);

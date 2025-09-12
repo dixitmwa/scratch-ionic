@@ -4,23 +4,48 @@ import { useIonViewDidEnter } from '@ionic/react';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   checkAuth: () => Promise<void>;
   logout: () => Promise<void>;
+  login: (token: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const checkAuth = async () => {
-    const { value } = await Preferences.get({ key: 'auth' });
-    setIsAuthenticated(!!value);
+    try {
+      setIsLoading(true);
+      const { value } = await Preferences.get({ key: 'auth' });
+      setIsAuthenticated(!!value);
+    } catch (error) {
+      console.error('Error checking auth:', error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (token: string) => {
+    try {
+      await Preferences.set({ key: 'auth', value: token });
+      setIsAuthenticated(true);
+    } catch (error) {
+      console.error('Error during login:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {
-    await Preferences.clear();
-    setIsAuthenticated(false);
+    try {
+      await Preferences.clear();
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   useIonViewDidEnter(() => {
@@ -32,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, checkAuth, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, checkAuth, logout, login }}>
       {children}
     </AuthContext.Provider>
   );

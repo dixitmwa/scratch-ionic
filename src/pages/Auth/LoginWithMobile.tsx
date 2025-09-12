@@ -36,8 +36,6 @@ const LoginWithMobile = () => {
         loadUserType();
     }, [])
 
-    console.log("-------inside------")
-
     const sentOtp = () => {
         console.log("Send OTP", mobileNumber)
         const isValid = /^[6-9]\d{9}$/.test(mobileNumber);
@@ -79,7 +77,7 @@ const LoginWithMobile = () => {
     })
 
     return (
-        <>
+        <IonPage>
             <div>
                 <div style={{
                     marginTop: "6vh",
@@ -147,7 +145,7 @@ const LoginWithMobile = () => {
                 <IonToast isOpen={showMessage} message={messageDetails} duration={2000} onDidDismiss={() => setShowMessage(false)}></IonToast>
                 {/* </IonPage> */}
             </div>
-        </>
+        </IonPage>
     )
 }
 

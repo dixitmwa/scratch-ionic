@@ -67,19 +67,17 @@ const PublicRoute: React.FC<PublicRouteProps> = ({ component: Component, ...rest
     if (isAuthenticated === null) {
         return null;
     }
-
-    // if(isAuthenticated){
-    //     return history.push("/tabs")
-    // }
-    // const { isAuthenticated } = useAuth();
-
     return (
         <Route
             {...rest}
             render={(props) =>
-                !isAuthenticated ? <MainLayout>
-                    <Component {...props} />
-                </MainLayout> : <Redirect to="/tabs" />
+                !isAuthenticated ? (
+                    // <MainLayout>
+                        <Component {...props} />
+                    // </MainLayout>
+                ) : (
+                    <Redirect to="/tabs/editor" />
+                )
             }
         />
     );

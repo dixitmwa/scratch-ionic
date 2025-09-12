@@ -1,7 +1,9 @@
-import { Redirect, Route, BrowserRouter as Router, useLocation } from 'react-router-dom';
+import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
   IonRouterOutlet,
+  IonSpinner,
+  IonContent,
   setupIonicReact
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
@@ -22,18 +24,8 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* import '@ionic/react/css/palettes/dark.always.css'; */
-/* import '@ionic/react/css/palettes/dark.class.css'; */
-// import '@ionic/react/css/palettes/dark.system.css';
-
 import './theme/variables.css';
+import './theme/theme.css';
 import { ScratchProvider } from './scratch/ScratchProvider';
 import { Buffer } from 'buffer';
 import MainLayout from './theme/MainLayout';
@@ -42,63 +34,92 @@ import LoginMethodPreference from './pages/Auth/LoginMethodPreference';
 import LoginWithCode from './pages/Auth/LoginWithCode';
 import LoginWithMobile from './pages/Auth/LoginWithMobile';
 import TabsLayout from './theme/TabLayout';
-import ScratchWorkspace from './components/ScratchWorkspace';
-import PrivateRoute from './routes/PrivateRoutes';
-import PublicRoute from './routes/PublicRoutes';
 import CompleteProfile from './pages/Auth/CompleteProfile';
 import AcceptCode from './pages/Auth/AcceptCode';
 import ForgotPassword from './pages/Auth/ForgotPassword';
-import { AuthProvider } from './service/AuthService/AuthContext';
-import { useEffect } from 'react';
-import { Preferences } from '@capacitor/preferences';
+import { AuthProvider, useAuth } from './service/AuthService/AuthContext';
+import Loader from './components/common-component/Loader';
+
 window.Buffer = Buffer;
 
 setupIonicReact();
 
 const App: React.FC = () => {
-  // const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuth();
 
-  // const updateInitPage = async () => {
-  //   console.log("location.pathname",location)
-  //   await Preferences.set({ key: "initPage", value: location.pathname })
-  // }
-
-  // useEffect(() => {
-  //   updateInitPage()
-  // }, [location])
+  if (isLoading) {
+    return (
+      <IonApp>
+        <MainLayout>
+          <IonContent>
+            <Loader />
+          </IonContent>
+        </MainLayout>
+      </IonApp>
+    );
+  }
 
   return (
     <ScratchProvider>
-      <AuthProvider>
-        <IonApp>
+      <IonApp>
+        <MainLayout>
           <IonReactRouter>
             <IonRouterOutlet>
-              <PublicRoute exact path="/" component={LoginPreference} />
-              <PublicRoute exact path="/login" component={LoginPreference} />
-              <PublicRoute exact path="/login-method" component={LoginMethodPreference} />
-              <PublicRoute exact path="/sign-in" component={LoginWithMobile} />
-              <PublicRoute exact path="/sign-up" component={LoginWithCode} />
-              <PublicRoute exact path="/complete-profile" component={CompleteProfile} />
-              <PublicRoute exact path="/accept-code" component={AcceptCode} />
-              <PublicRoute exact path="/forgot-password" component={ForgotPassword} />
+              {isAuthenticated ? (
+                <>
+                  <Route path="/tabs">
+                    <TabsLayout />
+                  </Route>
 
-              <Route exact path="/scratch-editor" render={() => (
-                <MainLayout>
-                  <ScratchWorkspace />
-                </MainLayout>
-              )} />
+                  <Route>
+                    <Redirect to="/tabs" />
+                  </Route>
+                </>
+              ) : (
+                <>
+                  <Route exact path="/login">
+                    <LoginPreference />
+                  </Route>
 
-              <PrivateRoute path="/tabs" component={TabsLayout} />
+                  <Route exact path="/login-method">
+                    <LoginMethodPreference />
+                  </Route>
 
-              {/* <Route path="/tabs" component={TabsLayout} /> */}
-              <Route render={() => <Redirect to="/" />} />
+                  <Route exact path="/sign-in">
+                    <LoginWithMobile />
+                  </Route>
+
+                  <Route exact path="/sign-up">
+                    <LoginWithCode />
+                  </Route>
+
+                  <Route exact path="/complete-profile">
+                    <CompleteProfile />
+                  </Route>
+
+                  <Route exact path="/accept-code">
+                    <AcceptCode />
+                  </Route>
+
+                  <Route exact path="/forgot-password">
+                    <ForgotPassword />
+                  </Route>
+
+                  <Route exact path="/">
+                    <Redirect to="/login" />
+                  </Route>
+
+                  <Route>
+                    <Redirect to="/login" />
+                  </Route>
+                </>
+              )}
             </IonRouterOutlet>
           </IonReactRouter>
-        </IonApp>
-      </AuthProvider>
+        </MainLayout>
+      </IonApp>
     </ScratchProvider>
-
-  )
+  );
 };
 
 export default App;

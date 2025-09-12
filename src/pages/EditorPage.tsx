@@ -1,4 +1,4 @@
-import { IonButton, IonIcon, IonPage, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
+import { IonIcon, isPlatform, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
 import { useEffect, useRef, useState } from "react";
 import { ScratchProvider } from "../scratch/ScratchProvider";
 import useScratchVm from "../scratch/useScratchVm";
@@ -92,10 +92,12 @@ export default function EditorPage() {
   };
 
   const scanDocument = async () => {
-    setLoading(true);
-    setProjectId("");
-    // history.push("/tabs/scratch-editor");
-    // return
+  setLoading(true);
+  setProjectId("");
+  localStorage.removeItem("project");
+  await Preferences.remove({ key: "project" });
+    history.push("/tabs/scratch-editor");
+    return
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
@@ -265,8 +267,8 @@ export default function EditorPage() {
               alignItems: "center",
               justifyContent: "flex-start",
               flexGrow: 1,
-              height: "79vh",
-              maxHeight: "79vh",
+              height: isPlatform('ios') ? "79vh": "85vh",
+              maxHeight: isPlatform('ios') ? "79vh": "85vh",
               maxWidth: "366px",
               margin: "0 auto",
               width: "100%",

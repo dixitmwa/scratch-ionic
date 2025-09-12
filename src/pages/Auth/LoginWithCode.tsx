@@ -53,7 +53,7 @@ const LoginWithCode = () => {
         console.log(response)
         debugger
         if (response?.status === 200) {
-            await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email,countryCode:prefix }) })
+            await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email, countryCode: prefix }) })
             history.push("/complete-profile")
         } else {
             // await Preferences.set({ key: 'credential', value: JSON.stringify({ mobileNumber, email }) })
@@ -70,8 +70,7 @@ const LoginWithCode = () => {
     }
 
     return (
-        <>
-            {/* <IonPage> */}
+        <IonPage>
             <div style={{
                 marginTop: "6vh",
                 padding: "0px 10px",
@@ -143,8 +142,7 @@ const LoginWithCode = () => {
                 </div>
             </div>
             <IonToast isOpen={showError} message={errorMessage} duration={2000} onDidDismiss={() => setShowError(false)}></IonToast>
-            {/* </IonPage> */}
-        </>
+        </IonPage>
     )
 }
 

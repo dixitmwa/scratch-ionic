@@ -1,4 +1,4 @@
-import { IonIcon, useIonViewDidEnter } from "@ionic/react"
+import { IonIcon, isPlatform, useIonViewDidEnter } from "@ionic/react"
 import BackArrow from "../assets/left_arrow.svg"
 import { useHistory } from "react-router"
 import ChipCard from "../components/common-component/ChipCard"
@@ -53,7 +53,7 @@ const CodeHistoryPage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: isPlatform('ios') ? "79vh": "85vh",
             // overflowY: "scroll",
         }}>
             {

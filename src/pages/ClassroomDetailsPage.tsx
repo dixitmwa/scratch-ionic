@@ -1,4 +1,4 @@
-import { IonIcon, IonToast, IonSpinner } from "@ionic/react";
+import { IonIcon, IonToast, IonSpinner, isPlatform } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import BackArrowWhite from "../assets/left_arrow_white.svg"
 import { useHistory } from "react-router";
@@ -135,7 +135,7 @@ const ClassroomDetailsPage = () => {
                 gap: "10px",
                 flexWrap: "wrap",
                 justifyContent: "center",
-                maxHeight: "79vh",
+                maxHeight: isPlatform('ios') ? "79vh": "85vh",
                 overflowY: "scroll"
             }}>
                 <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>

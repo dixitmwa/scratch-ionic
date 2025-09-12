@@ -1,4 +1,4 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, isPlatform } from "@ionic/react";
 import { useEffect, useState } from "react";
 import ChipCard from "../components/common-component/ChipCard";
 import RightArrow from '../assets/right_arrow.svg'
@@ -68,7 +68,7 @@ const ClassroomPage = () => {
                 gap: "10px",
                 flexWrap: "wrap",
                 justifyContent: "center",
-                maxHeight: "79vh",
+                maxHeight: isPlatform('ios') ? "79vh": "85vh",
                 overflowY: "scroll"
             }
             }>

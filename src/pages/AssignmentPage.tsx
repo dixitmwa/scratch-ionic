@@ -1,4 +1,4 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, isPlatform } from "@ionic/react";
 import CommonCard from "../components/common-component/Card";
 import CreateNew from "../assets/create_new.svg"
 import Upcoming from "../assets/upcoming.svg"
@@ -14,7 +14,7 @@ const AssignmentPage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: isPlatform('ios') ? "79vh": "85vh",
             overflowY: "scroll"
         }}>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gridTemplateRows: "repeat(2,1fr)", gap: "10px" }}>

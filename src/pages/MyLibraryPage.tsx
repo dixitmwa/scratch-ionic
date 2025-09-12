@@ -1,4 +1,4 @@
-import { IonIcon, IonToast } from "@ionic/react";
+import { IonIcon, IonToast, isPlatform } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg";
 import { useHistory } from "react-router";
 import ChipCard from "../components/common-component/ChipCard";
@@ -86,7 +86,7 @@ const MyLibraryPage = () => {
                 gap: "10px",
                 flexWrap: "wrap",
                 justifyContent: "center",
-                maxHeight: "79vh",
+                maxHeight: isPlatform('ios') ? "79vh": "85vh",
                 overflowY: "scroll"
             }}>
                 <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>

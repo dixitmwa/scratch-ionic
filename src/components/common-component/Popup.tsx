@@ -4,12 +4,12 @@ import '../../css/popup.css'
 
 interface CommonPopupProps {
     children: React.ReactNode;
-    modalRef?: React.RefObject<HTMLIonModalElement>;
+    modalRef?: React.RefObject<HTMLIonModalElement> | any;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
 }
 
-const CommonPopup: React.FC<CommonPopupProps> = ({ children, modalRef ,isOpen, setIsOpen}) => {
+const CommonPopup: React.FC<CommonPopupProps> = ({ children, modalRef, isOpen, setIsOpen }) => {
     const internalRef = useRef<HTMLIonModalElement>(null);
 
     return (

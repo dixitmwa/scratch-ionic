@@ -1,4 +1,4 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, isPlatform } from "@ionic/react";
 import ChipCard from "../components/common-component/ChipCard";
 // import { eyeOutline } from "ionicons/icons";
 import View from '../assets/view.svg'
@@ -42,10 +42,9 @@ const ProjectPage = () => {
                 gap: "10px",
                 flexWrap: "wrap",
                 justifyContent: "center",
-                maxHeight: "79vh",
+                maxHeight: isPlatform('ios') ? "79vh" : "85vh",
                 overflowY: "scroll"
-            }
-            }>
+            }}>
                 {
                     <>
                         {

@@ -1,4 +1,4 @@
-import { IonIcon } from "@ionic/react";
+import { IonIcon, isPlatform } from "@ionic/react";
 import Loader from "../components/common-component/Loader";
 import ChipCard from "../components/common-component/ChipCard";
 import View from '../assets/view.svg'
@@ -82,7 +82,7 @@ const HistoryPage = () => {
                     gap: "10px",
                     flexWrap: "wrap",
                     justifyContent: "center",
-                    maxHeight: "79vh",
+                    maxHeight: isPlatform('ios') ? "79vh": "85vh",
                     overflowY: "scroll"
                 }}>
                     {

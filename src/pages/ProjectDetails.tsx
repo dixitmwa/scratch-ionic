@@ -1,4 +1,4 @@
-import { IonIcon, useIonViewDidLeave } from "@ionic/react";
+import { IonIcon, isPlatform, useIonViewDidLeave } from "@ionic/react";
 import { useEffect, useState } from "react";
 import CustomButton from "../components/common-component/Button";
 import BackArrow from "../assets/left_arrow.svg"
@@ -198,7 +198,7 @@ const ProjectDetailsPage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: isPlatform('ios') ? "79vh": "85vh",
             // overflowY: "scroll",
         }}>
             <div className="header" style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>

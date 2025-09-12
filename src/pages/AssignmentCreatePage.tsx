@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { IonDatetimeButton, IonModal, IonDatetime } from "@ionic/react";
+import { IonDatetimeButton, IonModal, IonDatetime, isPlatform } from "@ionic/react";
 import { IonIcon, IonToast } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import BackArrowWhite from "../assets/left_arrow_white.svg";
 import { useHistory } from "react-router";
 import CustomButton from "../components/common-component/Button";
 import Radio from "../assets/radio.svg"
+import RadioWhite from "../assets/radio_white.svg"
 import CommonInput from "../components/common-component/Input";
 import CustomDropdown from "../components/common-component/DropDown";
 import CommonPopup from "../components/common-component/Popup";
@@ -127,7 +128,7 @@ const AssignmentCreatePage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: isPlatform('ios') ? "79vh": "85vh",
             overflowY: "scroll"
         }}>
             <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>
@@ -144,8 +145,22 @@ const AssignmentCreatePage = () => {
             </div>
             <div>
                 <div style={{ display: "flex", gap: "10px", margin: "10px 0px" }}>
-                    <CustomButton icon={<IonIcon icon={Radio} />} btnText="Class" background={selectedClass ? "#29B0FF" : "#FFFFFF"} txtColor={selectedClass ? "white" : "#607E9C"} style={{ fontSize: "18px", textTransform: "capitalize", ...(!selectedClass && { border: "1px solid #607E9C" }) }} onClick={() => setSelectedClass(true)} />
-                    <CustomButton icon={<IonIcon icon={Radio} />} btnText="Students" background={!selectedClass ? "#29B0FF" : "#FFFFFF"} txtColor={!selectedClass ? "white" : "#607E9C"} style={{ fontSize: "18px", textTransform: "capitalize", ...(selectedClass && { border: "1px solid #607E9C" }) }} onClick={() => setSelectedClass(false)} />
+                    <CustomButton
+                        icon={<IonIcon icon={selectedClass ? RadioWhite : Radio} style={{ fontSize: '22px' }} />}
+                        btnText="Class"
+                        background={selectedClass ? "#29B0FF" : "#FFFFFF"}
+                        txtColor={selectedClass ? "white" : "#607E9C"}
+                        style={{ fontSize: "18px", textTransform: "capitalize", ...(!selectedClass && { border: "1px solid #607E9C" }) }}
+                        onClick={() => setSelectedClass(true)}
+                    />
+                    <CustomButton
+                        icon={<IonIcon icon={!selectedClass ? RadioWhite : Radio} style={{ fontSize: '22px' }} />}
+                        btnText="Students"
+                        background={!selectedClass ? "#29B0FF" : "#FFFFFF"}
+                        txtColor={!selectedClass ? "white" : "#607E9C"}
+                        style={{ fontSize: "18px", textTransform: "capitalize", ...(selectedClass && { border: "1px solid #607E9C" }) }}
+                        onClick={() => setSelectedClass(false)}
+                    />
                 </div>
                 <div style={{
                     border: "1px solid #607E9C",
@@ -225,7 +240,7 @@ const AssignmentCreatePage = () => {
                                 display: "flex",
                                 alignItems: "center"
                             }}
-                            onClick={() =>  setIsModalDateOpen(true)}
+                            onClick={() => setIsModalDateOpen(true)}
                         >
                             {classDetails.date ? classDetails.date.split('T')[0] : "Select date"}
                         </div>

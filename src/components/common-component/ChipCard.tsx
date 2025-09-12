@@ -50,13 +50,13 @@ const ChipCard = ({
             )}
 
             <div style={{ flex: 1, paddingLeft: count ? "5px" : "15px" }}>
-                <p style={{
-                    color: "#607E9C",
-                    fontSize: "20px",
-                    fontWeight: 600,
-                    margin: 0,
-                    textTransform: textTransform ? "uppercase" : "none"
-                }}>{title}</p>
+                    <div style={{
+                        color: "#607E9C",
+                        fontSize: "20px",
+                        fontWeight: 600,
+                        margin: 0,
+                        textTransform: textTransform ? "uppercase" : "none"
+                    }}>{title}</div>
             </div>
 
             <div>

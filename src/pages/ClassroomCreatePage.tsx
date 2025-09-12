@@ -1,7 +1,7 @@
 import { useHistory } from "react-router";
 import CommonInput from "../components/common-component/Input";
 import CustomButton from "../components/common-component/Button";
-import { IonIcon, IonToast } from "@ionic/react";
+import { IonIcon, IonToast, isPlatform } from "@ionic/react";
 import BackArrow from "../assets/left_arrow.svg"
 import BackArrowWhite from "../assets/left_arrow_white.svg"
 import Plus from "../assets/plus.svg"
@@ -72,7 +72,7 @@ const ClassroomCreatePage = () => {
             gap: "10px",
             flexWrap: "wrap",
             justifyContent: "center",
-            maxHeight: "79vh",
+            maxHeight: isPlatform('ios') ? "79vh": "85vh",
             overflowY: "scroll"
         }}>
             <div style={{ width: "100%", borderBottom: "1px solid white", paddingBottom: "10px" }}>

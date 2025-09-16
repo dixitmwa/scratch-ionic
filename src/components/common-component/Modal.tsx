@@ -16,7 +16,8 @@ const CommonModal = ({
             maxWidth: "335px",
             width: "100%",
             gap: "20px",
-            height: "70vh",
+            height: "79vh",
+            maxHeight: "79vh",
             color: "#607E9C",
             overflowY: "scroll"
         }}>

@@ -27,7 +27,6 @@ export default function EditorPage() {
   console.log(isStudent)
 
   const takePhoto = async () => {
-    setLoading(true);
     setProjectId("");
     // history.push("/tabs/scratch-editor");
     // return
@@ -37,6 +36,7 @@ export default function EditorPage() {
       quality: 100,
     });
     debugger;
+    setLoading(true);
     // setShowLoading(true);
     const pdfDoc = await PDFDocument.create();
     const page = pdfDoc.addPage([595, 842]);
@@ -92,15 +92,15 @@ export default function EditorPage() {
   };
 
   const scanDocument = async () => {
-  setLoading(true);
-  setProjectId("");
-  localStorage.removeItem("project");
-  await Preferences.remove({ key: "project" });
+    setProjectId("");
+    localStorage.removeItem("project");
+    await Preferences.remove({ key: "project" });
     history.push("/tabs/scratch-editor");
     return
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
+    setLoading(true);
     debugger;
     console.log("scannedImages", scannedImages);
     // setAlertMessage(scannedImages)
@@ -267,8 +267,8 @@ export default function EditorPage() {
               alignItems: "center",
               justifyContent: "flex-start",
               flexGrow: 1,
-              height: isPlatform('ios') ? "79vh": "85vh",
-              maxHeight: isPlatform('ios') ? "79vh": "85vh",
+              height: isPlatform('ios') ? "79vh" : "85vh",
+              maxHeight: isPlatform('ios') ? "79vh" : "85vh",
               maxWidth: "366px",
               margin: "0 auto",
               width: "100%",
@@ -342,9 +342,9 @@ export default function EditorPage() {
                 />
               )
             }
-            {/* <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
+            <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
               Take Photo
-            </Button> */}
+            </Button> 
             {/* <IonButton
               expand="block"
               onClick={scanDocument}

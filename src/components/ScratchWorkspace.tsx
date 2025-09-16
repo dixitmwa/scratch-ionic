@@ -8,9 +8,11 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Preferences } from '@capacitor/preferences';
 import CommonCard from './common-component/Card';
 import CustomButton from './common-component/Button';
-import { chevronForwardOutline, reloadOutline } from 'ionicons/icons';
 import { useHistory } from 'react-router';
 import { useSection } from '../context/SectionContext';
+import FileSaveIcon from '../assets/file_save.svg';
+import RestartIcon from '../assets/restart.svg';
+import RightArrow from '../assets/right_arrow_double.svg';
 
 export default function ScratchWorkspace() {
   const blockRef = useRef(null);
@@ -272,7 +274,6 @@ export default function ScratchWorkspace() {
   }
 
   const handleUpload = async () => {
-    // Ensure renderer is attached before loading project
     // if (canvasRef.current) {
     //   attachRendererIfNone(canvasRef.current);
     //   // Ensure renderer is set on VM
@@ -347,8 +348,6 @@ export default function ScratchWorkspace() {
     return btoa(binary);
   }
 
-
-  // Navigate to playground page after saving current project
   const navigateToPlaygorund = async () => {
     try {
       console.log("1---")
@@ -408,6 +407,10 @@ export default function ScratchWorkspace() {
     return `data:${mimeType};base64,${base64String}`;
   };
 
+  const submitProject = async () => {
+
+  }
+
   useIonViewDidEnter(() => {
     lockOrientation();
     handleUpload();
@@ -436,9 +439,10 @@ export default function ScratchWorkspace() {
             WebkitOverflowScrolling: 'touch',
           }}
         />
-        <div style={{ display: "flex", justifyContent: "center", gap: 8, marginTop: "4px" }}>
-          <CustomButton btnText="" icon={<IonIcon icon={reloadOutline} style={{ fontSize: '32px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
-          <CustomButton btnText="" icon={<IonIcon icon={chevronForwardOutline} style={{ fontSize: '32px' }} />} onClick={() => navigateToPlaygorund()} background="#FBD213" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+        <div style={{ display: "flex", justifyContent: "space-evenly", gap: 8, marginTop: "10px"}}>
+          <CustomButton btnText="" icon={<IonIcon icon={FileSaveIcon} style={{ fontSize: '24px' }} />} onClick={() => submitProject()} background="#D929FF" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          <CustomButton btnText="" icon={<IonIcon icon={RestartIcon} style={{ fontSize: '24px' }} />} onClick={() => backToScan()} background="#FF8429" txtColor="white" style={{ width: "60px", padding: "5px" }} />
+          <CustomButton btnText="" icon={<IonIcon icon={RightArrow} style={{ fontSize: '24px' }} />} onClick={() => navigateToPlaygorund()} background="#29B0FF" txtColor="white" style={{ width: "60px", padding: "5px" }} />
         </div>
       </CommonCard>
 

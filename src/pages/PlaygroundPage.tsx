@@ -6,8 +6,8 @@ import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Capacitor } from '@capacitor/core';
 import { arrowBackCircle, arrowForwardCircle, arrowUpCircle, arrowDownCircle, flag, ellipse, aperture, home, accessibility } from 'ionicons/icons'
 import CustomButton from '../components/common-component/Button';
-// import { ScreenRecorder } from '../../screenrecorder/src';
-import { ScreenRecorder } from '@capgo/capacitor-screen-recorder';
+import { ScreenRecordingHelper } from '../utils/ScreenRecordingHelper';
+// import { CapgoScreenRecordingHelper as ScreenRecordingHelper } from '../utils/CapgoScreenRecordingHelper';
 import { Preferences } from '@capacitor/preferences';
 import { useHistory } from 'react-router';
 import GreenFlag from '../assets/green_flag.svg'
@@ -272,23 +272,24 @@ const PlaygroundPage = () => {
     // }
 
     const handleStartRecording = async () => {
-        if (!Capacitor.isNativePlatform()) {
+        if (!ScreenRecordingHelper.isSupported()) {
             setShowMessage(true);
             setMessage('Screen recording is only available on native platforms');
             return;
         }
-        console.log("isSupported", value);
         setLoading(true);
         setShowMessage(true);
         setMessage("Starting recording...");
         try {
-            const result = await ScreenRecorder.start();
+            const result = await ScreenRecordingHelper.startRecording();
             console.log("Recording started, result:", result);
             if (result.success) {
                 setRecording(true);
+                setShowMessage(true);
+                setMessage('Recording started successfully');
             } else {
                 setShowMessage(true);
-                setMessage('Failed to start recording');
+                setMessage(result.error || 'Failed to start recording');
             }
         } catch (error: any) {
             console.error("Error starting recording:", error);
@@ -304,16 +305,16 @@ const PlaygroundPage = () => {
         setShowMessage(true);
         setMessage("Stopping recording...");
         try {
-            const result = await ScreenRecorder.stop();
+            const result = await ScreenRecordingHelper.stopRecording();
             console.log("Recording stopped, result:", result);
             setRecording(false);
-            if (result.videoUri) {
+            if (result.success && result.videoUri) {
                 setVideoUri(result.videoUri);
                 setShowMessage(true);
                 setMessage('Recording saved: ' + result.videoUri);
             } else {
                 setShowMessage(true);
-                setMessage('No video returned');
+                setMessage(result.error || 'No video returned');
             }
         } catch (error: any) {
             setShowMessage(true);
@@ -356,6 +357,7 @@ const PlaygroundPage = () => {
             }
             vm.stopAll();
             disposeRenderer();
+            ScreenRecordingHelper.resetRecordingState();
         };
     }, []);
 
@@ -395,9 +397,25 @@ const PlaygroundPage = () => {
             {/* Right Control Buttons */}
             <div className="right" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 {!recording ? (
-                    <CustomButton btnText='' icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={handleStartRecording} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }}/>
+                    <CustomButton
+                        btnText=''
+                        icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />}
+                        onClick={handleStartRecording}
+                        background="#FFFFFF"
+                        txtColor="#FF0000"
+                        style={{ width: "60px", padding: "5px" }}
+                        disable={loading}
+                    />
                 ) : (
-                    <CustomButton btnText='' icon={<IonIcon icon={Record} style={{ fontSize: '32px' }} />} onClick={handleStopRecording} background="#FFFFFF" txtColor="#FF0000" style={{ width: "60px", padding: "5px" }}/>
+                    <CustomButton
+                        btnText=''
+                        icon={<IonIcon icon={Record} style={{ fontSize: '32px', color: '#FFFFFF' }} />}
+                        onClick={handleStopRecording}
+                        background="#FF0000"
+                        txtColor="#FFFFFF"
+                        style={{ width: "60px", padding: "5px", border: '2px solid #FF0000' }}
+                        disable={loading}
+                    />
                 )}
                 <CustomButton btnText='' icon={<IonIcon icon={Jump} style={{ fontSize: '32px' }} />} onClick={() =>
                     vm.runtime.ioDevices['keyboard'].postData({ key: ' ', isDown: true })
@@ -419,12 +437,8 @@ const PlaygroundPage = () => {
                 isOpen={showMessage}
                 onDidDismiss={() => setShowMessage(false)}
                 message={message}
-                duration={2000}></IonToast>
-            <IonToast
-                isOpen={showMessage}
-                onDidDismiss={() => setShowMessage(false)}
-                message={message}
-                duration={2000}></IonToast>
+                duration={2000}>
+            </IonToast>
         </div>
         // </IonPage>
     );

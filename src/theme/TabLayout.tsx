@@ -5,7 +5,8 @@ import {
   IonTabButton,
   IonIcon,
   IonLabel,
-  IonPage
+  IonPage,
+  createAnimation
 } from "@ionic/react";
 import { Route, useHistory, useLocation } from "react-router";
 import EditorPage from "../pages/EditorPage";
@@ -65,79 +66,88 @@ const TabsLayout = () => {
     }
   }, [location.pathname, history]);
 
+  // const slideAnimation = (baseEl: HTMLElement, opts: any) => {
+  //   const direction = opts.direction === 'back' ? -100 : 100;
+  //   return createAnimation()
+  //     .addElement(baseEl)
+  //     .duration(400)
+  //     .fromTo('transform', `translateX(${direction}%)`, 'translateX(0%)')
+  //     .fromTo('opacity', 0.5, 1);
+  // };
+
   return (
     // <MainLayout>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/tabs/editor" render={() => <IonPage><EditorPage /></IonPage>} />
-          <Route exact path="/tabs/editor/my-library" render={() => <IonPage><MyLibraryPage /></IonPage>} />
-          <Route exact path="/tabs/scratch-editor" render={() => <IonPage><ScratchWorkspace /></IonPage>} />
-          <Route exact path="/tabs/history" render={() => <IonPage><HistoryPage /></IonPage>} />
-          <Route exact path="/tabs/project" render={() => <IonPage><ProjectPage /></IonPage>} />
-          <Route exact path="/tabs/project/details" render={() => <IonPage><ProjectDetailsPage /></IonPage>} />
-          <Route exact path="/tabs/profile" render={() => <IonPage><ProfilePage /></IonPage>} />
-          <Route exact path="/tabs/profile/code-history" render={() => <IonPage><CodeHistoryPage /></IonPage>} />
-          <Route exact path="/tabs/playground" render={() => <IonPage><PlaygroundPage /></IonPage>} />
-          <Route exact path="/tabs/classroom" render={() => <IonPage><ClassroomPage /></IonPage>} />
-          <Route exact path="/tabs/classroom/create" render={() => <IonPage><ClassroomCreatePage /></IonPage>} />
-          <Route exact path="/tabs/classroom/details" render={() => <IonPage><ClassroomDetailsPage /></IonPage>} />
-          <Route exact path="/tabs/assignment" render={() => <IonPage><AssignmentPage /></IonPage>} />
-          <Route exact path="/tabs/assignment/create" render={() => <IonPage><AssignmentCreatePage /></IonPage>} />
-          <Route exact path="/tabs/assignment/upcoming" render={() => <IonPage><AssignmentUpcomingPage /></IonPage>} />
-          <Route exact path="/tabs/assignment/history" render={() => <IonPage><AssignmentHistoryPage /></IonPage>} />
-          <Route exact path="/tabs/assignment/details" render={() => <IonPage><AssignmentDetailsPage /></IonPage>} />
-          <Route exact path="/tabs/assignment/project-view" render={() => <IonPage><AssignmentBlockViewPage /></IonPage>} />
-          <Route exact path="/tabs/assignment/project-video" render={() => <IonPage><AssignmentBlockVideoPage /></IonPage>} />
-        </IonRouterOutlet>
+    <IonTabs>
+      <IonRouterOutlet>
+        <Route exact path="/tabs/editor" render={() => <IonPage><EditorPage /></IonPage>} />
+        <Route exact path="/tabs/editor/my-library" render={() => <IonPage><MyLibraryPage /></IonPage>} />
+        <Route exact path="/tabs/scratch-editor" render={() => <IonPage><ScratchWorkspace /></IonPage>} />
+        <Route exact path="/tabs/history" render={() => <IonPage><HistoryPage /></IonPage>} />
+        <Route exact path="/tabs/project" render={() => <IonPage><ProjectPage /></IonPage>} />
+        <Route exact path="/tabs/project/details" render={() => <IonPage><ProjectDetailsPage /></IonPage>} />
+        <Route exact path="/tabs/profile" render={() => <IonPage><ProfilePage /></IonPage>} />
+        <Route exact path="/tabs/profile/code-history" render={() => <IonPage><CodeHistoryPage /></IonPage>} />
+        <Route exact path="/tabs/playground" render={() => <IonPage><PlaygroundPage /></IonPage>} />
+        <Route exact path="/tabs/classroom" render={() => <IonPage><ClassroomPage /></IonPage>} />
+        <Route exact path="/tabs/classroom/create" render={() => <IonPage><ClassroomCreatePage /></IonPage>} />
+        <Route exact path="/tabs/classroom/details" render={() => <IonPage><ClassroomDetailsPage /></IonPage>} />
+        <Route exact path="/tabs/assignment" render={() => <IonPage><AssignmentPage /></IonPage>} />
+        <Route exact path="/tabs/assignment/create" render={() => <IonPage><AssignmentCreatePage /></IonPage>} />
+        <Route exact path="/tabs/assignment/upcoming" render={() => <IonPage><AssignmentUpcomingPage /></IonPage>} />
+        <Route exact path="/tabs/assignment/history" render={() => <IonPage><AssignmentHistoryPage /></IonPage>} />
+        <Route exact path="/tabs/assignment/details" render={() => <IonPage><AssignmentDetailsPage /></IonPage>} />
+        <Route exact path="/tabs/assignment/project-view" render={() => <IonPage><AssignmentBlockViewPage /></IonPage>} />
+        <Route exact path="/tabs/assignment/project-video" render={() => <IonPage><AssignmentBlockVideoPage /></IonPage>} />
+      </IonRouterOutlet>
 
-        {
-          showTab && isStudent && (
-            <IonTabBar slot="bottom" className="custom-tab-bar">
-              <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
-                <IonIcon icon={ScannerTab} />
-                {/* <img src={Scanner}/> */}
-                <IonLabel className="custom-tab-label">Playground</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="history" href="/tabs/history" className={location.pathname.startsWith("/tabs/history") ? "active-tab" : ""}>
-                <IonIcon icon={HistoryTab} />
-                <IonLabel className="custom-tab-label">My Library</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="project" href="/tabs/project" className={location.pathname.startsWith("/tabs/project") ? "active-tab" : ""}>
-                <IonIcon icon={ProjectTab} />
-                <IonLabel className="custom-tab-label">Project</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
-                <IonIcon icon={ProfileTab} />
-                <IonLabel className="custom-tab-label">Profile</IonLabel>
-              </IonTabButton>
-            </IonTabBar>
-          )
-        }
+      {
+        showTab && isStudent && (
+          <IonTabBar slot="bottom" className="custom-tab-bar">
+            <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
+              <IonIcon icon={ScannerTab} />
+              {/* <img src={Scanner}/> */}
+              <IonLabel className="custom-tab-label">Playground</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="history" href="/tabs/history" className={location.pathname.startsWith("/tabs/history") ? "active-tab" : ""}>
+              <IonIcon icon={HistoryTab} />
+              <IonLabel className="custom-tab-label">My Library</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="project" href="/tabs/project" className={location.pathname.startsWith("/tabs/project") ? "active-tab" : ""}>
+              <IonIcon icon={ProjectTab} />
+              <IonLabel className="custom-tab-label">Project</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
+              <IonIcon icon={ProfileTab} />
+              <IonLabel className="custom-tab-label">Profile</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        )
+      }
 
-        {
-          showTab && !isStudent && (
-            <IonTabBar slot="bottom" className="custom-tab-bar">
-              <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
-                <IonIcon icon={ScannerTab} />
-                {/* <img src={Scanner}/> */}
-                <IonLabel className="custom-tab-label">Playground</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="classroom" href="/tabs/classroom" className={location.pathname.startsWith("/tabs/classroom") ? "active-tab" : ""}>
-                <IonIcon icon={ClassroomTab} />
-                <IonLabel className="custom-tab-label">Classroom</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="assignment" href="/tabs/assignment" className={location.pathname.startsWith("/tabs/assignment") ? "active-tab" : ""}>
-                <IonIcon icon={ProjectTab} />
-                <IonLabel className="custom-tab-label">Assignments</IonLabel>
-              </IonTabButton>
-              <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
-                <IonIcon icon={ProfileTab} />
-                <IonLabel className="custom-tab-label">Profile</IonLabel>
-              </IonTabButton>
-            </IonTabBar>
-          )
-        }
-      </IonTabs>
+      {
+        showTab && !isStudent && (
+          <IonTabBar slot="bottom" className="custom-tab-bar">
+            <IonTabButton tab="editor" href="/tabs/editor" className={location.pathname.startsWith("/tabs/editor") ? "active-tab" : ""}>
+              <IonIcon icon={ScannerTab} />
+              {/* <img src={Scanner}/> */}
+              <IonLabel className="custom-tab-label">Playground</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="classroom" href="/tabs/classroom" className={location.pathname.startsWith("/tabs/classroom") ? "active-tab" : ""}>
+              <IonIcon icon={ClassroomTab} />
+              <IonLabel className="custom-tab-label">Classroom</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="assignment" href="/tabs/assignment" className={location.pathname.startsWith("/tabs/assignment") ? "active-tab" : ""}>
+              <IonIcon icon={ProjectTab} />
+              <IonLabel className="custom-tab-label">Assignments</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="profile" href="/tabs/profile" className={location.pathname.startsWith("/tabs/profile") ? "active-tab" : ""}>
+              <IonIcon icon={ProfileTab} />
+              <IonLabel className="custom-tab-label">Profile</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        )
+      }
+    </IonTabs>
     // </MainLayout>
   );
 };

@@ -100,8 +100,8 @@ export default function EditorPage() {
     // setLoading(true);
     localStorage.removeItem("project");
     await Preferences.remove({ key: "project" });
-    history.push("/tabs/scratch-editor");
-    return
+    // history.push("/tabs/scratch-editor");
+    // return
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });

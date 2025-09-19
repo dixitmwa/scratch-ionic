@@ -27,12 +27,13 @@ export default function ScratchWorkspace() {
   const { setProjectId, projectId } = useSection();
   const workspaceRef = useRef<any>(null);
   const canvasRef = useRef(null);
-  const vmRef = useRef(null);
+  const vmRef = useRef<any>(null);
   const router = useIonRouter();
   const history = useHistory()
   const [ready, setReady] = useState(false);
   const [fileUploaded, setFileUploaded] = useState(false);
   const [selectedSpriteId, setSelectedSpriteId] = useState(null);
+  const [targetsList, setTargetsList] = useState<any[]>([]);
   const selectedSpiId = useRef(null);
   const isCalledOneTime = useRef(false);
   // const { projectId } = useSection();
@@ -161,10 +162,13 @@ export default function ScratchWorkspace() {
   }, [ready]);
 
   const handleProjectLoaded = () => {
-    const spriteTargets = vmRef.current?.runtime?.targets.filter(t => t.isSprite);
-    if (!selectedSpiId.current) {
-      vmRef.current?.setEditingTarget(spriteTargets[1].id);
-      updateBlocksForSprite(spriteTargets[1].id);
+    // Refresh targets for UI
+    refreshTargets();
+
+    const spriteTargets = vmRef.current?.runtime?.targets?.filter((t: any) => t.isSprite);
+    if (!selectedSpiId.current && spriteTargets && spriteTargets.length > 0) {
+      vmRef.current?.setEditingTarget(spriteTargets[0]?.id);
+      updateBlocksForSprite(spriteTargets[0]?.id);
     }
     // else {
     //   updateBlocksForSprite(selectedSpriteId);
@@ -213,6 +217,27 @@ export default function ScratchWorkspace() {
     // }, 100);
   };
 
+  // Build a cleaned targets list from VM runtime for rendering
+  const refreshTargets = () => {
+    try {
+      const vm: any = vmRef.current;
+      if (!vm || !vm.runtime || !Array.isArray(vm.runtime.targets)) {
+        setTargetsList([]);
+        return;
+      }
+      const raw = vm.runtime.targets.filter((t: any) => t && (t.isSprite || t.isStage));
+      // Remove duplicates by id while preserving order
+      const map = new Map();
+      raw.forEach((t: any) => {
+        if (!map.has(t.id)) map.set(t.id, t);
+      });
+      setTargetsList(Array.from(map.values()));
+    } catch (e) {
+      console.warn('refreshTargets failed', e);
+      setTargetsList([]);
+    }
+  };
+
   const updateBlocksForSprite = (spriteId: any) => {
     const ws = workspaceRef.current;
     const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
@@ -228,11 +253,10 @@ export default function ScratchWorkspace() {
       const dom = ScratchBlocks.Xml.textToDom(xmlString);
       ScratchBlocks.Xml.domToWorkspace(dom, ws);
       // ScratchBlocks.svgResize(ws);
-      debugger
       setTimeout(() => {
         const ws: any = workspaceRef.current;
         if (!ws) return;
-
+        debugger
         ws.setScale(0.9);
         ws.resize();
 
@@ -521,6 +545,8 @@ export default function ScratchWorkspace() {
         // }
         await loadProject(vmRef.current, buffer);
         setUploadedProjectBuffer(buffer)
+        // update UI targets list and blocks
+        refreshTargets();
         handleProjectLoaded();
       } catch (error) {
         setFileUploaded(false)
@@ -529,7 +555,14 @@ export default function ScratchWorkspace() {
     } else {
       const { value } = await Preferences.get({ key: 'project' })
       console.log("value", value);
-      // const projectUrl = value;
+      const projectUrl = value;
+      // const projectCandidates = [
+      //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/3bb569e1fa4b4890b1c8a49a35855534", // 2 sprites
+      //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping", // 3 sprites
+      // ];
+      // const projectUrl = projectCandidates[Math.floor(Math.random() * projectCandidates.length)];
+      console.log('Selected random projectUrl:', projectUrl);
+      // const projectUrl = "https://prthm11-scratch-vision-game-dup2.hf.space/download_sb3/e8c1a7a020994ca89aaa17ede68c61d8";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/ab339cf6b4d44daab40607dbf12b4c89";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3%201";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/4315c95771cb4db499182e9b5715ae0c";
@@ -538,7 +571,6 @@ export default function ScratchWorkspace() {
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/9fd86316cd1a44e881e7a2fa4d097179";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/8b085c41bce44096827dcd2402b1ad57";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/6373b10de75240f5847d3c86156dc066";
-      const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/49b33c1f68664dc9b4af7dadbade5357";
       // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/d7aaf7035ba8430eb90e65ba9b114ca3";
       // const projectUrl: any = "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping";
@@ -565,9 +597,12 @@ export default function ScratchWorkspace() {
         // if (blockRef.current) {
         //   attachRendererIfNone(blockRef.current);
         // }
+        debugger
         setFileUploaded(true);
         await loadProject(vmRef.current, buffer);
         setUploadedProjectBuffer(buffer);
+        // update UI targets list after load
+        refreshTargets();
       } catch (error) {
         setFileUploaded(false)
         console.error('Error loading project:', error);
@@ -786,30 +821,23 @@ export default function ScratchWorkspace() {
           gap: 8,
           marginTop: "8px"
         }}>
-          {(Array.isArray((vmRef.current as any)?.runtime?.targets) ?
-            // Filter out duplicate sprites by id and only show valid targets
-            Array.from(new Map(
-              (vmRef.current as any).runtime.targets
-                .filter((t: any) => t && (t.isSprite || t.isStage))
-                .map((t: any) => [t.id, t])
-            ).values())
-            : []).map((sprite: any) => {
-              const costume = sprite.getCurrentCostume?.();
-              const asset = costume?.asset;
-              const imageUrl = asset ? getImageFromAsset(asset) : null;
+          {targetsList.map((sprite: any) => {
+            const costume = sprite.getCurrentCostume?.();
+            const asset = costume?.asset;
+            const imageUrl = asset ? getImageFromAsset(asset) : null;
 
-              return (
-                <div key={sprite.id} onClick={() => handleSpriteClick(sprite.id)}>
-                  <CommonCard style={{ padding: 5 }} bottomText={sprite.getName?.()} border={sprite.id === selectedSpriteId}>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-                      {imageUrl && (
-                        <img src={imageUrl} alt={sprite.getName?.()} style={{ width: 80, height: 80, objectFit: 'contain' }} />
-                      )}
-                    </div>
-                  </CommonCard>
-                </div>
-              );
-            })}
+            return (
+              <div key={sprite.id} onClick={() => handleSpriteClick(sprite.id)}>
+                <CommonCard style={{ padding: 5 }} bottomText={sprite.getName?.()} border={sprite.id === selectedSpriteId}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                    {imageUrl && (
+                      <img src={imageUrl} alt={sprite.getName?.()} style={{ width: 80, height: 80, objectFit: 'contain' }} />
+                    )}
+                  </div>
+                </CommonCard>
+              </div>
+            );
+          })}
         </div>
       }
     </div>

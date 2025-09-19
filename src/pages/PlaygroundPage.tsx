@@ -23,7 +23,7 @@ import { useSection } from '../context/SectionContext';
 import { usePlayground } from '../context/PlaygroundContext';
 
 const PlaygroundPage = () => {
-    const playLabelStyle = { color: "#607E9C", textTransform: 'uppercase', fontWeight: 600, textAlign: 'center' as const, margin: 0 };
+    const playLabelStyle = { color: "#607E9C", textTransform: 'uppercase' as const, fontWeight: 600, textAlign: 'center' as const, margin: 0 };
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const vm = getPlaygroundVMInstance();
     const router = useIonRouter()

@@ -33,9 +33,6 @@ export async function loadProject(vm: any, input: any): Promise<void> {
 
     // Validate with scratch-parser (assumes version 2 project)
     validate(input, false, async (validationError: any, validatedProject: any) => {
-      console.log("🔍 loadProject - Validation complete");
-      console.log("❌ Validation error:", validationError);
-      console.log("✅ Validated project:", validatedProject ? "exists" : "null");
 
       if (validationError) {
         console.log("⚠️ loadProject - Validation failed, trying SB1 converter");

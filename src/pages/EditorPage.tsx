@@ -22,7 +22,9 @@ export default function EditorPage() {
   const containerRef = useRef(null);
   const [imageUploaded, setImageUploaded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isStudent, setIsStudent] = useState(true)
+  const [isStudent, setIsStudent] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errorShow, setErrorShow] = useState<boolean>(false);
 
   console.log(isStudent)
 
@@ -75,24 +77,27 @@ export default function EditorPage() {
       .then((response) => response.json())
       .then((data) => {
         console.log("data", data);
-        localStorage.setItem("project", data?.test_url);
-        Preferences.set({ key: "project", value: data?.test_url });
-        setImageUploaded(true);
-        setLoading(false);
-        // setProjectFile(data?.test_url)
-        // setShowLoading(false);
-        history.push("/tabs/scratch-editor");
-        // ionRouter.push('/scratch-editor', 'forward', 'replace');
+        if (data?.isError) {
+          setLoading(false);
+          setErrorMsg("Your file is corrupted, please retry!");
+        } else {
+          localStorage.setItem("project", data?.test_url);
+          Preferences.set({ key: "project", value: data?.test_url });
+          setImageUploaded(true);
+          setLoading(false);
+          history.push("/tabs/scratch-editor");
+        }
       })
       .catch((error) => {
         setLoading(false);
+        setErrorMsg("Your file is corrupted, please retry!");
         console.error("Error processing PDF:", error);
-        // setShowLoading(false);
       });
   };
 
   const scanDocument = async () => {
     setProjectId("");
+    // setLoading(true);
     localStorage.removeItem("project");
     await Preferences.remove({ key: "project" });
     history.push("/tabs/scratch-editor");
@@ -100,12 +105,12 @@ export default function EditorPage() {
     const { scannedImages } = await DocumentScanner.scanDocument({
       maxNumDocuments: 5,
     });
-    setLoading(true);
-    debugger;
+    // setLoading(true);
+    // debugger;
     console.log("scannedImages", scannedImages);
     // setAlertMessage(scannedImages)
     if (scannedImages && scannedImages?.length > 0) {
-      // setShowLoading(true);
+      setLoading(true);
       try {
         const displayUri = Capacitor.convertFileSrc(scannedImages[0]);
         // setScannedImageUri(displayUri);
@@ -197,8 +202,15 @@ export default function EditorPage() {
         );
 
         const data = await response.json();
+        console.log("data", JSON.stringify(data));
+        if (data?.isError) {
+          setLoading(false);
+          setImageUploaded(false);
+          setErrorMsg(data?.message || "Your images is corrupted, please retry!");
+          setErrorShow(true);
+          return;
+        }
         localStorage.setItem("project", data?.test_url);
-        console.log("data", data);
         await Preferences.set({ key: "project", value: data?.test_url });
         // setProjectFile(data?.test_url)
         // setShowLoading(false);
@@ -206,7 +218,7 @@ export default function EditorPage() {
         history.push("/tabs/scratch-editor");
         setLoading(false);
 
-        ionRouter.push("/scratch-editor", "forward", "replace");
+        // ionRouter.push("/scratch-editor", "forward", "replace");
         setImageUploaded(true);
       } catch (e) {
         setLoading(false);
@@ -241,11 +253,16 @@ export default function EditorPage() {
         {loading ? (
           <div
             style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              height: "100vh",
-              background: "rgb(0 0 0 / 60%)",
+              background: "rgba(75, 85, 99, 0.95)",
+              zIndex: 9998,
             }}
           >
             <p
@@ -254,10 +271,40 @@ export default function EditorPage() {
                 fontWeight: 600,
                 fontSize: "66px",
                 textTransform: "uppercase",
+                margin: 0,
+                textAlign: "center",
               }}
             >
               Loading...
             </p>
+          </div>
+        ) : errorShow ? (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              background: "rgba(75, 85, 99, 0.95)",
+              zIndex: 9999,
+            }}
+          >
+            <p style={{ fontWeight: 600, fontSize: "28px", marginBottom: 24, padding: "20px", textAlign: "center" }}>{errorMsg}</p>
+            <CustomButton
+              btnText="Back to Scan"
+              background="#FF8D29"
+              onClick={() => {
+                setLoading(false);
+                setErrorShow(false);
+                setImageUploaded(false);
+              }}
+              style={{ width: "fit-content" }}
+            />
           </div>
         ) : (
           <div
@@ -344,7 +391,7 @@ export default function EditorPage() {
             }
             <Button variant="contained" onClick={takePhoto} sx={{ mt: 2 }}>
               Take Photo
-            </Button> 
+            </Button>
             {/* <IonButton
               expand="block"
               onClick={scanDocument}

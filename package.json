@@ -67,7 +67,8 @@
     "scratch-storage": "^4.0.188",
     "scratch-svg-renderer": "^3.0.140",
     "scratch-vm": "^5.0.300",
-    "screenrecorder": "file:screenrecorder"
+    "screenrecorder": "file:screenrecorder",
+    "screenrecordingv1": "file:screenrecordingv1"
   },
   "devDependencies": {
     "@capacitor/cli": "7.4.2",

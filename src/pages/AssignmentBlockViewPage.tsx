@@ -6,6 +6,7 @@ import { useHistory } from "react-router";
 import ChipCard from "../components/common-component/ChipCard";
 import View from "../assets/view.svg"
 import { useSection } from "../context/SectionContext";
+import { usePlayground } from "../context/PlaygroundContext";
 import LeftArrow from "../assets/left_arrow_double.svg";
 import PlayArrow from "../assets/play.svg";
 import RightArrow from "../assets/right_arrow_double.svg";
@@ -24,6 +25,7 @@ import CommonCard from "../components/common-component/Card";
 
 const AssignmentBlockViewPage = () => {
     const { sectionId, selectedAssignmentItem } = useSection();
+    const { setBufferBase64 } = usePlayground();
 
     function formatDate(dateString: string) {
         if (!dateString) return "";
@@ -437,7 +439,7 @@ const AssignmentBlockViewPage = () => {
             console.log("7")
             const base64 = await uint8ArrayToBase64Storage(uint8Array);
             console.log("8")
-            await Preferences.set({ key: "buffer_base64", value: base64 });
+            setBufferBase64(base64);
             console.log("9")
             localStorage.setItem('lastSavedProject', base64);
             console.log("10")

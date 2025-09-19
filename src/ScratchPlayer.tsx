@@ -26,13 +26,13 @@ const ScratchPlayer: React.FC = () => {
     const vm = new VM();
     // const renderer = new RenderWebGL(canvasRef.current!);
     // vm.attachRenderer(renderer);
-    const canvas = document.createElement('canvas');
-    document.body.appendChild(canvas); // For testing, put it in the body
-    const renderer = new RenderWebGL(canvas);
-    vm.attachRenderer(renderer);
-    await vm.loadProject(await file.arrayBuffer());
-    await vm.start();
-    vm.greenFlag();
+    // const canvas = document.createElement('canvas');
+    // document.body.appendChild(canvas); // For testing, put it in the body
+    // const renderer = new RenderWebGL(canvas);
+    // vm.attachRenderer(renderer);
+    // await vm.loadProject(await file.arrayBuffer());
+    // await vm.start();
+    // vm.greenFlag();
 
     // Create a Blockly-compatible XML workspace (basic example)
     const xmlText = scratchBlocksToBlocklyXml(blocks);

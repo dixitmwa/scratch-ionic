@@ -6,9 +6,11 @@ import { ScratchStorage } from 'scratch-storage';
 import { getLastSavedProjectData } from './components/commonfunction';
 
 let renderer: RenderWebGL | null = null;
+let playgroundRenderer: RenderWebGL | null = null;
 let uploadedProjectBuffer: Uint8Array | null = null; // 🟡 NEW
 
 const vm = new VM();
+const vmPlayGround = new VM();
 
 const audioEngine = new AudioEngine();
 const storage = new ScratchStorage();
@@ -22,8 +24,20 @@ vm.setCompatibilityMode(true);
 vm.setTurboMode(false);
 vm.start();
 
+vmPlayGround.attachAudioEngine(audioEngine);
+vmPlayGround.attachStorage(storage);
+vmPlayGround.attachV2BitmapAdapter(bitmapAdapter);
+
+vmPlayGround.setCompatibilityMode(true);
+vmPlayGround.setTurboMode(false);
+vmPlayGround.start();
+
 export function getVMInstance() {
     return vm;
+}
+
+export function getPlaygroundVMInstance() {
+    return vmPlayGround;
 }
 
 // Only one renderer allowed at a time
@@ -33,6 +47,14 @@ export function attachRendererIfNone(canvas: HTMLCanvasElement) {
     renderer = new RenderWebGL(canvas);
     vm.attachRenderer(renderer);
     return renderer;
+}
+
+export function attachPlaygroundRendererIfNone(canvas: HTMLCanvasElement) {
+    if (playgroundRenderer) return playgroundRenderer;
+
+    playgroundRenderer = new RenderWebGL(canvas);
+    vmPlayGround.attachRenderer(playgroundRenderer);
+    return playgroundRenderer;
 }
 
 export function disposeRenderer() {

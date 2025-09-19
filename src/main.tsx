@@ -1,6 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { SectionProvider } from './context/SectionContext';
+import { PlaygroundProvider } from './context/PlaygroundContext';
 import { AuthProvider } from './service/AuthService/AuthContext';
 import App from './App'; // Updated App component with authentication and theming
 // import AppV1 from './AppV1'; // Alternative App component
@@ -35,7 +36,9 @@ function Main() {
     <React.StrictMode>
       <AuthProvider>
         <SectionProvider>
-          <App />
+          <PlaygroundProvider>
+            <App />
+          </PlaygroundProvider>
         </SectionProvider>
       </AuthProvider>
     </React.StrictMode>

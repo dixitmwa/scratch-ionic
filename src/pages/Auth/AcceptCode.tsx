@@ -1,32 +1,64 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import CustomButton from "../../components/common-component/Button"
 import CommonCard from "../../components/common-component/Card"
 import CommonInput from "../../components/common-component/Input"
 import { useHistory } from "react-router"
 import { Preferences } from "@capacitor/preferences"
 import Back from "../../assets/double_arrow_left_button.svg"
-import { IonIcon, useIonViewWillEnter } from "@ionic/react"
+import { IonIcon, IonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react"
+import AuthService from "../../service/AuthService/AuthService"
+import { useAuth } from "../../service/AuthService/AuthContext"
 
 const AcceptCode = () => {
+    const { checkAuth } = useAuth();
     const history = useHistory()
     const [codeId, setCodeId] = useState("")
     const [userType, setUserType] = useState("")
     const [initPage, setInitPage] = useState("")
+    const [userId, setUserId] = useState("")
+    const [errorMessage, setErrorMessage] = useState("")
+    const [showError, setShowError] = useState(false)
 
     const loadUserType = async () => {
         const { value } = await Preferences.get({ key: "userType" });
         const { value: initPage } = await Preferences.get({ key: "initPage" });
+        const { value: userId } = await Preferences.get({ key: "userId" });
         setUserType(value || "student");
-        setInitPage(initPage || "")
+        setInitPage(initPage || "");
+        setUserId(userId || "");
     };
 
-    useIonViewWillEnter(() => {
+    useIonViewDidEnter(() => {
         loadUserType();
     });
 
+    useEffect(() => {
+        loadUserType();
+    }, [])
+
     const handleSubmitCode = async () => {
-        await Preferences.set({ key: 'auth', value: "loremtokengeneratedbyautomanual" })
-        history.push("/tabs/editor")
+        const { value: userId } = await Preferences.get({ key: "userId" });
+        const response: any = await AuthService.verifyCodeLinkService({
+            UserID: userId,
+            Code: codeId,
+        })
+        debugger
+        console.log("response", response)
+        if (response?.status === 200) {
+            // await Preferences.set({ key: 'auth', value: response?.data?.token });
+            // history.push("/tabs/editor")
+            setShowError(true)
+            setErrorMessage("Code verified successfully.");
+            await Preferences.set({ key: 'auth', value: response?.data?.data?.token })
+            await Preferences.set({ key: 'userType', value: response?.data?.data?.role?.toLowerCase() })
+            await checkAuth();
+            setTimeout(() => {
+                history.push("/tabs/editor")
+            }, 0)
+        } else {
+            setShowError(true)
+            setErrorMessage(response?.data?.message || "Something went wrong, please try again.");
+        }
     }
 
     return (
@@ -65,11 +97,17 @@ const AcceptCode = () => {
                             onChange={(e: any) => { setCodeId(e.target.value) }}
                         />
                         <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginTop: "10px" }}>
-                            <CustomButton btnText="Submit" background="#FF8D29" onClick={() => { handleSubmitCode() }} style={{ width: "auto" }} disable={codeId.length !== 4} />
+                            <CustomButton btnText="Submit" background="#FF8D29" onClick={() => { handleSubmitCode() }} style={{ width: "auto" }} disable={codeId.length !== 8} />
                         </div>
                     </CommonCard>
                 </div>
             </div>
+            <IonToast
+                isOpen={showError}
+                onDidDismiss={() => setShowError(false)}
+                message={errorMessage}
+                duration={2000}
+            />
         </>
     )
 }

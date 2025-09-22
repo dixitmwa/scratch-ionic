@@ -5,7 +5,7 @@ import CustomButton from "../../components/common-component/Button";
 import CustomDropdown from "../../components/common-component/DropDown";
 import { useHistory } from "react-router";
 import Back from "../../assets/double_arrow_left_button.svg"
-import { IonIcon, IonToast, useIonViewWillEnter } from "@ionic/react";
+import { IonIcon, IonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
 import { Preferences } from "@capacitor/preferences";
 import AuthService from "../../service/AuthService/AuthService";
 
@@ -40,24 +40,31 @@ const CompleteProfile = () => {
         debugger
         const { value } = await Preferences.get({ key: "credential" })
         const { value: userType } = await Preferences.get({ key: "userType" })
-        // const credentialValue = JSON.parse(value || "")
+        const credentialValue = JSON.parse(value || "")
+        // await Preferences.set({ key: "initPage", value: "accept-code" })
+        // history.push("/accept-code")
+        // return;
+        const obj = credentialValue.email !== "" ? { email: credentialValue.email } : {
+            mobileNumber: credentialValue.mobileNumber, countryCode: credentialValue.countryCode
+        }
         const response = await AuthService.registerService({
             name: profileData.name,
-            schoolName: profileData.schoolId,
-            className: profileData.classId,
-            sectionName: profileData.sectionId,
+            schoolId: profileData.schoolId,
+            classId: profileData.classId,
+            sectionId: profileData.sectionId,
             role: userType,
-            mobileNumber: "7990465461",
-            countryCode: "+91",
-            // ...credentialValue,
+            // mobileNumber: "7990465461",
+            // countryCode: "+91",
+            ...obj,
             password: password.password
-        })
+        });
         debugger
         console.log(response)
         if (response?.status === 200) {
+            await Preferences.set({ key: 'userId', value: response?.data?.data?.id })
+            await Preferences.set({ key: "initPage", value: "accept-code" })
             setShowError(true)
             setErrorMessage(response?.data?.message)
-            await Preferences.set({ key: "initPage", value: "accept-code" })
             history.push("/accept-code")
         } else {
             setShowError(true)
@@ -83,12 +90,13 @@ const CompleteProfile = () => {
         }
     }
 
-    useIonViewWillEnter(() => {
+    useIonViewDidEnter(() => {
         loadUserType();
         fetchSchoolWiseClasses();
     });
 
     useEffect(() => {
+        loadUserType();
         fetchSchoolWiseClasses()
     }, [])
 

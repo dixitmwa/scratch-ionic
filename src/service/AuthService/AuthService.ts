@@ -13,6 +13,8 @@ export default {
         doFetch(AUTH_API_ENDPOINTS.REGISTER, REQUEST_METHODS.POST, registerDetails),
     forgotPasswordService: (forgotPasswordDetails: any) =>
         doFetch(AUTH_API_ENDPOINTS.FORGOT_PASSWORD, REQUEST_METHODS.POST, forgotPasswordDetails),
+    verifyCodeLinkService: (codeLinkDetails: any) =>
+        doFetch(AUTH_API_ENDPOINTS.VERIFY_CODELINK, REQUEST_METHODS.POST, codeLinkDetails),
     fetchLoggedUserDetailsByIdService: () =>
         doFetch(AUTH_API_ENDPOINTS.FETCH_LOGGED_USER_DETAILS, REQUEST_METHODS.GET),
     updateProfileService: (profileData: any) =>

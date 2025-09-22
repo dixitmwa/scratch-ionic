@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CustomButton from "../../components/common-component/Button";
 import CommonCard from "../../components/common-component/Card";
 import CommonInput from "../../components/common-component/Input";
 import { useHistory } from "react-router";
-import { IonIcon, IonPage, IonToast, useIonViewWillEnter } from "@ionic/react";
+import { IonIcon, IonPage, IonToast, useIonViewDidEnter, useIonViewWillEnter } from "@ionic/react";
 import { Preferences } from "@capacitor/preferences";
 import Auth from "../../service/AuthService/AuthService";
 import Back from "../../assets/double_arrow_left_button.svg"
@@ -25,7 +25,7 @@ const LoginWithCode = () => {
         setUserType(value?.toLowerCase() || "student");
     };
 
-    useIonViewWillEnter(() => {
+    useIonViewDidEnter(() => {
         loadUserType();
     });
 
@@ -68,6 +68,10 @@ const LoginWithCode = () => {
         setCode("")
         history.push("/login-method");
     }
+
+    useEffect(() => {
+        loadUserType();
+    }, []);
 
     return (
         <IonPage>

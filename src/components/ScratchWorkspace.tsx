@@ -13,6 +13,7 @@ import CustomButton from './common-component/Button';
 import { useHistory } from 'react-router';
 import { useSection } from '../context/SectionContext';
 import FileSaveIcon from '../assets/file_save.svg';
+import blocksInit from '../comv1/blocks';
 import RestartIcon from '../assets/restart.svg';
 import RightArrow from '../assets/right_arrow_double.svg';
 
@@ -77,6 +78,13 @@ export default function ScratchWorkspace() {
   useEffect(() => {
     if (!ready || !blockRef.current) return;
 
+    // Initialize custom blocks with VM
+    const currentVM = vmRef.current;
+    if (currentVM) {
+      console.log('Initializing custom blocks with VM:', currentVM);
+      blocksInit(currentVM, false);
+    }
+
     workspaceRef.current = ScratchBlocks.inject(blockRef.current, {
       toolbox: null,
       media: 'https://unpkg.com/scratch-blocks/media/',
@@ -101,7 +109,7 @@ export default function ScratchWorkspace() {
       attachRendererIfNone(canvasRef.current);
     }
 
-    const handleBlockChange = (e) => {
+    const handleBlockChange = (e: any) => {
       const vm = vmRef.current;
       const ws = workspaceRef.current;
       if (!vm || !vm.editingTarget || !ws) return;
@@ -240,7 +248,7 @@ export default function ScratchWorkspace() {
 
   const updateBlocksForSprite = (spriteId: any) => {
     const ws = workspaceRef.current;
-    const target = vmRef.current?.runtime?.targets.find(t => t.id === spriteId);
+    const target = vmRef.current?.runtime?.targets.find((t: any) => t.id === spriteId);
     if (!ws || !target) return;
 
     let xmlString = target.blocks.toXML();
@@ -296,6 +304,10 @@ export default function ScratchWorkspace() {
 
     setTimeout(() => {
       updateBlocksForSprite(spriteId);
+      // Refresh workspace to update block menus with new sprite data
+      if (vmRef.current && typeof vmRef.current.refreshWorkspace === 'function') {
+        vmRef.current.refreshWorkspace();
+      }
     }, 100);
   };
 
@@ -547,6 +559,10 @@ export default function ScratchWorkspace() {
         setUploadedProjectBuffer(buffer)
         // update UI targets list and blocks
         refreshTargets();
+        // Refresh workspace to update block menus with new data
+        if (vmRef.current && typeof vmRef.current.refreshWorkspace === 'function') {
+          vmRef.current.refreshWorkspace();
+        }
         handleProjectLoaded();
       } catch (error) {
         setFileUploaded(false)
@@ -555,10 +571,12 @@ export default function ScratchWorkspace() {
     } else {
       const { value } = await Preferences.get({ key: 'project' })
       console.log("value", value);
-      const projectUrl = value;
+      // const projectUrl = value;
+      const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/1cb60ecdb1075c8769cb346d5c2a22c3"
       // const projectCandidates = [
-      //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/3bb569e1fa4b4890b1c8a49a35855534", // 2 sprites
+      //   //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/3bb569e1fa4b4890b1c8a49a35855534", // 2 sprites
       //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping", // 3 sprites
+      //   //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/multiple_sound"
       // ];
       // const projectUrl = projectCandidates[Math.floor(Math.random() * projectCandidates.length)];
       console.log('Selected random projectUrl:', projectUrl);
@@ -603,6 +621,10 @@ export default function ScratchWorkspace() {
         setUploadedProjectBuffer(buffer);
         // update UI targets list after load
         refreshTargets();
+        // Refresh workspace to update block menus with new data
+        if (vmRef.current && typeof vmRef.current.refreshWorkspace === 'function') {
+          vmRef.current.refreshWorkspace();
+        }
       } catch (error) {
         setFileUploaded(false)
         console.error('Error loading project:', error);
@@ -650,7 +672,7 @@ export default function ScratchWorkspace() {
         vm.runtime.emit('targetsUpdate');
       }
       cleanVMState(); // <-- Add this again just before saving
-      const targets = vmRef?.current?.runtime?.targets?.filter(t => !!t && typeof t === 'object');
+      const targets = vmRef?.current?.runtime?.targets?.filter((t: any) => !!t && typeof t === 'object');
 
       // // Ensure a valid editing target is set before saving
       // const targets = (vmRef.current as any)?.runtime?.targets || [];
@@ -710,6 +732,10 @@ export default function ScratchWorkspace() {
       } catch (verifyError) {
         console.log("⚠️ Could not verify final base64 for duplicates:", verifyError);
       }
+      if (vm && typeof vm.clear === 'function') {
+        vm.clear();
+      }
+      disposeRenderer();
 
       console.log("10 - ✅ Base64 stored in context");
 

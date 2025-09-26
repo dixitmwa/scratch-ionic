@@ -1,6 +1,6 @@
 import { IonButton, IonIcon, IonPage, IonToast, useIonRouter, useIonViewDidEnter, useIonViewDidLeave } from '@ionic/react';
 import { useEffect, useRef, useState } from 'react';
-import { attachPlaygroundRendererIfNone, attachRendererIfNone, disposeRenderer, getPlaygroundVMInstance, getProjectBuffer, getSavedProjectBuffer, getUploadedProjectBuffer, getVMInstance } from '../scratchVMInstance';
+import { attachPlaygroundRendererIfNone, disposeRenderer, getPlaygroundVMInstance, getProjectBuffer, getSavedProjectBuffer, getUploadedProjectBuffer, getVMInstance } from '../scratchVMInstance';
 import '../css/playground.css'
 import { ScreenOrientation } from '@capacitor/screen-orientation';
 import { Capacitor } from '@capacitor/core';
@@ -18,6 +18,7 @@ import DownArrow from '../assets/down_arrow.svg'
 import LeftArrow from '../assets/left_arrow_playground.svg'
 import RightArrow from '../assets/right_arrow_playground.svg'
 import Jump from '../assets/jump.svg'
+import blocksInit from '../comv1/blocks';
 import ClassRoomService from '../service/ClassroomService/ClassRoomService';
 import { useSection } from '../context/SectionContext';
 import { usePlayground } from '../context/PlaygroundContext';
@@ -26,6 +27,9 @@ const PlaygroundPage = () => {
     const playLabelStyle = { color: "#607E9C", textTransform: 'uppercase' as const, fontWeight: 600, textAlign: 'center' as const, margin: 0 };
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const vm = getPlaygroundVMInstance();
+    const vmWorkspace = getVMInstance();
+    // Initialize custom blocks for this VM instance
+    blocksInit(vm, false);
     const router = useIonRouter()
     const history = useHistory();
     const { projectId } = useSection();
@@ -49,9 +53,9 @@ const PlaygroundPage = () => {
     }
 
     const startGame = () => {
-        // if (vm && typeof vm.clear === 'function') {
-        //     vm.clear();
-        // }
+        if (vmWorkspace && typeof vmWorkspace.clear === 'function') {
+            vmWorkspace.clear();
+        }
         // if (gameStarted) return;
         setGameStarted(true);
         vm.greenFlag();
@@ -443,8 +447,10 @@ const PlaygroundPage = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        lockOrientation();
-        run()
+    lockOrientation();
+    run();
+    // Defensive: re-initialize custom blocks if VM changes
+    blocksInit(vm, false);
 
         const handleKeyDown = (e: any) => {
 
@@ -477,8 +483,10 @@ const PlaygroundPage = () => {
     }, []);
 
     useIonViewDidEnter(() => {
-        lockOrientation()
-        run()
+    lockOrientation();
+    run();
+    // Defensive: re-initialize custom blocks on view enter
+    blocksInit(vm, false);
     })
 
     useIonViewDidLeave(() => {
@@ -491,7 +499,7 @@ const PlaygroundPage = () => {
             {/* Left Control Buttons */}
             <div className="left" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <div>
-                    <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={startGame} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
+                    <CustomButton btnText='' icon={<IonIcon icon={GreenFlag} style={{ fontSize: '32px' }} />} onClick={() => startGame()} background="#FFFFFF" txtColor="#59C059" style={{ width: "60px", padding: "5px" }} />
                     <p style={playLabelStyle}>Play</p>
                 </div>
                 <div>

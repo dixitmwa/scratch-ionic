@@ -452,53 +452,85 @@ export default function (vm: any, useCatBlocks: any) {
     };
 
     const originalSoundPlayUntilDone = vm.runtime._primitives['sound_playuntildone'];
+    // vm.runtime._primitives['sound_playuntildone'] = function (args: any, util: any) {
+    //     const soundName = args.SOUND_MENU;
+    //     console.log('[primitive sound_playuntildone] called with:', {
+    //         soundName,
+    //         typeOfSoundName: typeof soundName,
+    //         args,
+    //         util
+    //     });
+    //     // Primitive-level global debounce for playUntildone to prevent near-simultaneous duplicates
+    //     try {
+    //         const globalMapKey = '__scratch_recentPrimitiveCalls';
+    //         const globalMap: Map<string, number> = (window as any)[globalMapKey] || new Map();
+    //         if (!(window as any)[globalMapKey]) (window as any)[globalMapKey] = globalMap;
+    //         const resolvedForDebounce = resolveSoundId(soundName) || soundName;
+    //         const primitiveKey = `prim:until:${resolvedForDebounce}`;
+    //         const nowP = Date.now();
+    //         const last = globalMap.get(primitiveKey) || 0;
+    //         // use slightly larger window for until-done
+    //         if (nowP - last < 300) {
+    //             console.log('[primitive sound_playuntildone] ignored duplicate primitive call (debounce global) for', primitiveKey);
+    //             return;
+    //         }
+    //         globalMap.set(primitiveKey, nowP);
+    //     } catch (e) {
+    //         // ignore debounce errors
+    //     }
+
+    //     // Prevent duplicate calls from different VM instances
+    //     try {
+    //         const callerTarget = util && util.target;
+    //         if (callerTarget && callerTarget.runtime && vm && vm.runtime && callerTarget.runtime !== vm.runtime) {
+    //             console.log('[primitive sound_playuntildone] ignored call from different VM instance (callerTarget.runtime !== vm.runtime)');
+    //             return;
+    //         }
+    //     } catch (e) {
+    //         // ignore errors in guard
+    //     }
+
+    //     try {
+    //         const targetSounds = (vm && vm.editingTarget && (vm.editingTarget.sounds || (vm.editingTarget.sprite && vm.editingTarget.sprite.sounds))) || [];
+    //         console.log('[primitive sound_playuntildone] vm.editingTarget.sounds:', targetSounds.map((s: any) => ({ name: s.name, assetId: s.assetId, md5ext: s.md5ext })));
+    //     } catch (e) {
+    //         console.warn('[primitive sound_playuntildone] failed to read editingTarget.sounds', e);
+    //     }
+    //     // If this primitive call comes from a different VM instance, ignore it.
+    //     // try {
+    //     //     const callerTarget = util && util.target;
+    //     //     if (callerTarget && callerTarget.runtime && vm && vm.runtime && callerTarget.runtime !== vm.runtime) {
+    //     //         console.log('[primitive sound_playuntildone] ignored call from different VM instance (callerTarget.id=', callerTarget.id, ')');
+    //     //         return;
+    //     //     }
+    //     // } catch (e) {
+    //     //     // ignore errors in guard
+    //     // }
+    //     const callerId = util && util.target ? util.target.id : undefined;
+    //     console.log("Resolved id is ==", callerId, util, args);
+    //     // If custom sound, play and wait here, then don't call original primitive
+    //     const resolved = resolveSoundId(soundName);
+    //     if (resolved) {
+    //         console.log('[primitive sound_playuntildone] handling custom sound, resolvedId=', resolved);
+    //         const result = playCustomSound(soundName, true, callerId);
+    //         if (result && typeof result.then === 'function') return result;
+    //         return;
+    //     }
+    //     // Otherwise use original primitive
+    //     if (originalSoundPlayUntilDone) {
+    //         return originalSoundPlayUntilDone.call(this, args, util);
+    //     }
+    // };
+
     vm.runtime._primitives['sound_playuntildone'] = function (args: any, util: any) {
         const soundName = args.SOUND_MENU;
-        console.log('[primitive sound_playuntildone] called with:', {
-            soundName,
-            typeOfSoundName: typeof soundName,
-            args,
-            util
-        });
-
-        // Prevent duplicate calls from different VM instances
-        try {
-            const callerTarget = util && util.target;
-            if (callerTarget && callerTarget.runtime && vm && vm.runtime && callerTarget.runtime !== vm.runtime) {
-                console.log('[primitive sound_playuntildone] ignored call from different VM instance (callerTarget.runtime !== vm.runtime)');
-                return;
-            }
-        } catch (e) {
-            // ignore errors in guard
-        }
-
-        try {
-            const targetSounds = (vm && vm.editingTarget && (vm.editingTarget.sounds || (vm.editingTarget.sprite && vm.editingTarget.sprite.sounds))) || [];
-            console.log('[primitive sound_playuntildone] vm.editingTarget.sounds:', targetSounds.map((s: any) => ({ name: s.name, assetId: s.assetId, md5ext: s.md5ext })));
-        } catch (e) {
-            console.warn('[primitive sound_playuntildone] failed to read editingTarget.sounds', e);
-        }
-        // If this primitive call comes from a different VM instance, ignore it.
-        // try {
-        //     const callerTarget = util && util.target;
-        //     if (callerTarget && callerTarget.runtime && vm && vm.runtime && callerTarget.runtime !== vm.runtime) {
-        //         console.log('[primitive sound_playuntildone] ignored call from different VM instance (callerTarget.id=', callerTarget.id, ')');
-        //         return;
-        //     }
-        // } catch (e) {
-        //     // ignore errors in guard
-        // }
         const callerId = util && util.target ? util.target.id : undefined;
-        console.log("Resolved id is ==", callerId, util, args);
-        // If custom sound, play and wait here, then don't call original primitive
         const resolved = resolveSoundId(soundName);
+
         if (resolved) {
-            console.log('[primitive sound_playuntildone] handling custom sound, resolvedId=', resolved);
-            const result = playCustomSound(soundName, true, callerId);
-            if (result && typeof result.then === 'function') return result;
-            return;
+            return playCustomSound(soundName, true, callerId);
         }
-        // Otherwise use original primitive
+
         if (originalSoundPlayUntilDone) {
             return originalSoundPlayUntilDone.call(this, args, util);
         }

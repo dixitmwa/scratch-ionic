@@ -571,8 +571,8 @@ export default function ScratchWorkspace() {
     } else {
       const { value } = await Preferences.get({ key: 'project' })
       console.log("value", value);
-      // const projectUrl = value;
-      const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/1cb60ecdb1075c8769cb346d5c2a22c3"
+      const projectUrl = value;
+      // // const projectUrl = "https://prthm11-scratch-vision-game.hf.space/download_sb3/1cb60ecdb1075c8769cb346d5c2a22c3"
       // const projectCandidates = [
       //   //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/3bb569e1fa4b4890b1c8a49a35855534", // 2 sprites
       //   "https://prthm11-scratch-vision-game.hf.space/download_sb3/cat_jumping", // 3 sprites
